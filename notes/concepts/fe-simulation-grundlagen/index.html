@@ -1,0 +1,421 @@
+<!DOCTYPE html><html lang="zh-CN" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-bguv2lll"> <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>有限元法基础 | 系统实验室</title><link rel="canonical" href="https://zhuosama.github.io/knowledge-site/notes/concepts/fe-simulation-grundlagen/"/><link rel="sitemap" href="/knowledge-site/sitemap-index.xml"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"/><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"系统实验室","url":"https://zhuosama.github.io/knowledge-site/","description":"面向工程学习、自动化系统与公开项目作品的个人系统实验室。","author":{"@type":"Person","name":"zhuosama","url":"https://github.com/zhuosama"},"inLanguage":"zh-CN"}</script><link rel="shortcut icon" href="/knowledge-site/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v6.4.4"/><meta name="generator" content="Starlight v0.39.3"/><meta property="og:title" content="有限元法基础"/><meta property="og:type" content="article"/><meta property="og:url" content="https://zhuosama.github.io/knowledge-site/notes/concepts/fe-simulation-grundlagen/"/><meta property="og:locale" content="zh-CN"/><meta property="og:description" content="有限元法（FEM）的基本原理 — 离散化、单元类型、刚度矩阵与求解流程"/><meta property="og:site_name" content="系统实验室"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="有限元法（FEM）的基本原理 — 离散化、单元类型、刚度矩阵与求解流程"/><meta property="og:image" content="https://zhuosama.github.io/knowledge-site/og-image.png"/><meta name="twitter:image" content="https://zhuosama.github.io/knowledge-site/og-image.png"/><meta name="author" content="zhuosama"/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/knowledge-site/_astro/print.DNXP8c50.css" media="print"><link rel="stylesheet" href="/knowledge-site/_astro/Page.B-1qtOo7.css"><script type="module" src="/knowledge-site/_astro/page.B_tncCx8.js"></script></head> <body class="astro-bguv2lll"> <a href="#_top" class="astro-7q3lir66">跳转到内容</a> <div class="page sl-flex astro-vrdttmbt"> <header class="header astro-vrdttmbt"><div class="header astro-kmkmnagf"> <div class="title-wrapper sl-flex astro-kmkmnagf"> <a href="/knowledge-site/" class="site-title sl-flex astro-m46x6ez3">  <img class="astro-m46x6ez3" alt="系统实验室" src="/knowledge-site/_astro/logo.DLu7WHiV.svg" width="64" height="64">  <span class="astro-m46x6ez3" translate="no"> 系统实验室 </span> </a> </div> <div class="sl-flex print:hidden astro-kmkmnagf"> <site-search class="astro-kmkmnagf astro-v37mnknz" data-translations="{&quot;placeholder&quot;:&quot;搜索&quot;}"> <button data-open-modal disabled aria-label="搜索" aria-keyshortcuts="Control+K" class="astro-v37mnknz"> <svg aria-hidden="true" class="astro-v37mnknz astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg> <span class="sl-hidden md:sl-block astro-v37mnknz" aria-hidden="true">搜索</span> <kbd class="sl-hidden md:sl-flex astro-v37mnknz" style="display: none;"> <kbd class="astro-v37mnknz">Ctrl</kbd><kbd class="astro-v37mnknz">K</kbd> </kbd> </button> <dialog style="padding:0" aria-label="搜索" class="astro-v37mnknz"> <div class="dialog-frame sl-flex astro-v37mnknz">  <button data-close-modal class="sl-flex md:sl-hidden astro-v37mnknz"> 取消 </button> <div class="search-container astro-v37mnknz"> <div id="starlight__search" class="astro-v37mnknz"></div> </div> </div> </dialog> </site-search>  <script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script> <script type="module" src="/knowledge-site/_astro/Search.astro_astro_type_script_index_0_lang.LAi8CP1H.js"></script>  </div> <div class="sl-hidden md:sl-flex print:hidden right-group astro-kmkmnagf"> <div class="sl-flex social-icons astro-kmkmnagf"> <a href="https://github.com/zhuosama" rel="me" class="sl-flex astro-wy4te6ga"><span class="sr-only astro-wy4te6ga">GitHub</span><svg aria-hidden="true" class="astro-wy4te6ga astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a> </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-4yphtoen"> <span class="sr-only astro-4yphtoen">选择主题</span> <svg aria-hidden="true" class="icon label-icon astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg> <select autocomplete="off" class="astro-4yphtoen"> <option value="dark" class="astro-4yphtoen">深色</option><option value="light" class="astro-4yphtoen">浅色</option><option value="auto" selected class="astro-4yphtoen">自动</option> </select> <svg aria-hidden="true" class="icon caret astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg> </label> </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script> <script type="module">const r="starlight-theme",o=e=>e==="auto"||e==="dark"||e==="light"?e:"auto",c=()=>o(typeof localStorage<"u"&&localStorage.getItem(r));function n(e){typeof localStorage<"u"&&localStorage.setItem(r,e==="light"||e==="dark"?e:"")}const l=()=>matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";function t(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e==="auto"?l():e,n(e)}matchMedia("(prefers-color-scheme: light)").addEventListener("change",()=>{c()==="auto"&&t("auto")});class s extends HTMLElement{constructor(){super(),t(c()),this.querySelector("select")?.addEventListener("change",a=>{a.currentTarget instanceof HTMLSelectElement&&t(o(a.currentTarget.value))})}}customElements.define("starlight-theme-select",s);</script> <script type="module">class s extends HTMLElement{constructor(){super();const e=this.querySelector("select");e&&(e.addEventListener("change",t=>{t.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=t.currentTarget.value)}),window.addEventListener("pageshow",t=>{if(!t.persisted)return;const n=e.querySelector("option[selected]")?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}}customElements.define("starlight-lang-select",s);</script> </div> </div></header> <nav class="sidebar print:hidden astro-vrdttmbt" aria-label="主要"> <starlight-menu-button class="print:hidden astro-jif73yzw"> <button aria-expanded="false" aria-label="菜单" aria-controls="starlight__sidebar" class="sl-flex md:sl-hidden astro-jif73yzw"> <svg aria-hidden="true" class="open-menu astro-jif73yzw astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg> <svg aria-hidden="true" class="close-menu astro-jif73yzw astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg> </button> </starlight-menu-button> <script type="module">class s extends HTMLElement{constructor(){super(),this.btn=this.querySelector("button"),this.btn.addEventListener("click",()=>this.toggleExpanded());const t=this.closest("nav");t&&t.addEventListener("keyup",e=>this.closeOnEscape(e))}setExpanded(t){this.setAttribute("aria-expanded",String(t)),document.body.toggleAttribute("data-mobile-menu-expanded",t)}toggleExpanded(){this.setExpanded(this.getAttribute("aria-expanded")!=="true")}closeOnEscape(t){t.code==="Escape"&&(this.setExpanded(!1),this.btn.focus())}}customElements.define("starlight-menu-button",s);</script>  <div id="starlight__sidebar" class="sidebar-pane astro-vrdttmbt"> <div class="sidebar-content sl-flex astro-vrdttmbt"> <sl-sidebar-state-persist data-hash="0x41keo" class="astro-kku4brbg"> <script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script>  <ul class="top-level astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/" class="large astro-3ii7xxms"> <span class="astro-3ii7xxms">首页</span>  </a> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Systems 系统</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="0"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/systems/hermes-virtual-trader/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Hermes 投资系统</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/systems/hermes-virtual-trader/architecture/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">系统架构</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/systems/hermes-virtual-trader/strategy-iteration/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">策略迭代</span>  </a> </li> </ul> </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">专题</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="1"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">专题总览</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/mct/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">MCT 微计算机技术</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/k2/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">K2 机械构造</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/materials/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Werkstofftechnik 材料科学</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/mechatronik/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Mechatronik 机电组件</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/syt/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">SYT 系统理论</span>  </a> </li> </ul> </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">项目作品 Portfolio</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="2"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/projects/mct/mct-praktikum-lernindex/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">MCT 微计算机技术</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/projects/agentmemory/readme/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">AgentMemory 共享记忆</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/projects/trading/trading-agent-to-virtual-trader/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Trading → Virtual Trader</span>  </a> </li> </ul> </details> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/agent-memory/dashboard/" class="large astro-3ii7xxms"> <span class="astro-3ii7xxms">AgentMemory 大盘</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/search/" class="large astro-3ii7xxms"> <span class="astro-3ii7xxms">搜索</span>  </a> </li> </ul>  <script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script> </sl-sidebar-state-persist> <div class="md:sl-hidden"> <div class="mobile-preferences sl-flex astro-wu23bvmt"> <div class="social-icons astro-wu23bvmt"> <a href="https://github.com/zhuosama" rel="me" class="sl-flex astro-wy4te6ga"><span class="sr-only astro-wy4te6ga">GitHub</span><svg aria-hidden="true" class="astro-wy4te6ga astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a> </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-4yphtoen"> <span class="sr-only astro-4yphtoen">选择主题</span> <svg aria-hidden="true" class="icon label-icon astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg> <select autocomplete="off" class="astro-4yphtoen"> <option value="dark" class="astro-4yphtoen">深色</option><option value="light" class="astro-4yphtoen">浅色</option><option value="auto" selected class="astro-4yphtoen">自动</option> </select> <svg aria-hidden="true" class="icon caret astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg> </label> </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script>   </div> </div> </div> </div> </nav> <div class="main-frame astro-vrdttmbt">  <script type="module">const a=document.getElementById("starlight__sidebar"),n=a?.querySelector("sl-sidebar-state-persist"),o="sl-sidebar-state",i=()=>{let t=[];const e=n?.dataset.hash||"";try{const s=sessionStorage.getItem(o),r=JSON.parse(s||"{}");Array.isArray(r.open)&&r.hash===e&&(t=r.open)}catch{}return{hash:e,open:t,scroll:a?.scrollTop||0}},c=t=>{try{sessionStorage.setItem(o,JSON.stringify(t))}catch{}},d=()=>c(i()),l=(t,e)=>{const s=i();s.open[e]=t,c(s)};n?.addEventListener("click",t=>{if(!(t.target instanceof Element))return;const e=t.target.closest("summary")?.closest("details");if(!e)return;const s=e.querySelector("sl-sidebar-restore"),r=parseInt(s?.dataset.index||"");isNaN(r)||l(!e.open,r)});addEventListener("visibilitychange",()=>{document.visibilityState==="hidden"&&d()});addEventListener("pageHide",d);</script> <div class="lg:sl-flex astro-67yu43on"> <aside class="right-sidebar-container print:hidden astro-67yu43on"> <div class="right-sidebar astro-67yu43on"> <div class="lg:sl-hidden astro-pb3aqygn"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-doynk5tl"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-doynk5tl"><details id="starlight__mobile-toc" class="astro-doynk5tl"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-doynk5tl"><span class="toggle sl-flex astro-doynk5tl">本页内容<svg aria-hidden="true" class="caret astro-doynk5tl astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-doynk5tl"></span></summary><div class="dropdown astro-doynk5tl"><ul class="isMobile astro-gnoq344e" style="--depth: 0;"> <li class="astro-gnoq344e" style="--depth: 0;"> <a href="#_top" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">概述</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#铁基材料werkstoffe-auf-fe-basis" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">铁基材料（Werkstoffe auf Fe-Basis）</span> </a> <ul class="isMobile astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#钢铁生产stahlherstellung" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">钢铁生产（Stahlherstellung）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#钢的分类与命名einteilung-und-bezeichnung-der-stähle" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">钢的分类与命名（Einteilung und Bezeichnung der Stähle）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#合金元素的作用wirkung-der-legierungselemente" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">合金元素的作用（Wirkung der Legierungselemente）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#铁碳相图基础eisen-kohlenstoff-diagramm" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">铁碳相图基础（Eisen-Kohlenstoff-Diagramm）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#主要钢种群stahlgruppen" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">主要钢种群（Stahlgruppen）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#钢的热处理wärmebehandlung-von-stählen" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">钢的热处理（Wärmebehandlung von Stählen）</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#关键考点" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">关键考点</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#相关链接" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">相关链接</span> </a>  </li> </ul></div></details></nav></mobile-starlight-toc><script type="module" src="/knowledge-site/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.hwBsy0Mo.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-pb3aqygn"><div class="sl-container astro-pb3aqygn"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">本页内容</h2><ul class="astro-gnoq344e" style="--depth: 0;"> <li class="astro-gnoq344e" style="--depth: 0;"> <a href="#_top" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">概述</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#铁基材料werkstoffe-auf-fe-basis" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">铁基材料（Werkstoffe auf Fe-Basis）</span> </a> <ul class="astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#钢铁生产stahlherstellung" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">钢铁生产（Stahlherstellung）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#钢的分类与命名einteilung-und-bezeichnung-der-stähle" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">钢的分类与命名（Einteilung und Bezeichnung der Stähle）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#合金元素的作用wirkung-der-legierungselemente" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">合金元素的作用（Wirkung der Legierungselemente）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#铁碳相图基础eisen-kohlenstoff-diagramm" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">铁碳相图基础（Eisen-Kohlenstoff-Diagramm）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#主要钢种群stahlgruppen" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">主要钢种群（Stahlgruppen）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#钢的热处理wärmebehandlung-von-stählen" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">钢的热处理（Wärmebehandlung von Stählen）</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#关键考点" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">关键考点</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#相关链接" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">相关链接</span> </a>  </li> </ul></nav></starlight-toc><script type="module" src="/knowledge-site/_astro/TableOfContents.astro_astro_type_script_index_0_lang.FuRcXuRY.js"></script></div></div> </div> </aside> <div class="main-pane astro-67yu43on">  <main data-pagefind-body class="astro-bguv2lll" lang="zh-CN" dir="ltr">    <div class="content-panel astro-7nkwcw3z"> <div class="sl-container astro-7nkwcw3z"> <h1 id="_top" class="astro-j6tvhyss">有限元法基础</h1> </div> </div> <div class="content-panel astro-7nkwcw3z"> <div class="sl-container astro-7nkwcw3z"> <div class="sl-markdown-content"> <blockquote>
+<p>来源：TH Nürnberg GSO, Werkstofftechnik BMF 3, Vorlesungsfolien (WiSe 20/21), PPT 11: Fe-Basis Werkstoffe</p>
+</blockquote>
+<div class="sl-heading-wrapper level-h2"><h2 id="铁基材料werkstoffe-auf-fe-basis">铁基材料（Werkstoffe auf Fe-Basis）</h2><a class="sl-anchor-link" href="#铁基材料werkstoffe-auf-fe-basis"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “铁基材料（Werkstoffe auf Fe-Basis）”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="钢铁生产stahlherstellung">钢铁生产（Stahlherstellung）</h3><a class="sl-anchor-link" href="#钢铁生产stahlherstellung"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “钢铁生产（Stahlherstellung）”</span></a></div>
+<div class="sl-heading-wrapper level-h4"><h4 id="原料与冶炼">原料与冶炼</h4><a class="sl-anchor-link" href="#原料与冶炼"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “原料与冶炼”</span></a></div>
+<p>钢铁生产始于铁矿石的冶炼。主要铁矿石及其化学式如下：</p>
+<ul>
+<li>磁铁矿（Magnetit）：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><msub><mi>e</mi><mn>3</mn></msub><msub><mi>O</mi><mn>4</mn></msub></mrow><annotation encoding="application/x-tex">Fe_3O_4</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>赤铁矿（Hämatit）：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><msub><mi>e</mi><mn>2</mn></msub><msub><mi>O</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">Fe_2O_3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>褐铁矿（Limonit）：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><msub><mi>e</mi><mn>2</mn></msub><msub><mi>O</mi><mn>3</mn></msub><mo>⋅</mo><msub><mi>H</mi><mn>2</mn></msub><mi>O</mi></mrow><annotation encoding="application/x-tex">Fe_2O_3 \cdot H_2O</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0813em;">H</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0813em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span></span></span></span></li>
+<li>菱铁矿（Siderit）：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mi>e</mi><mi>C</mi><msub><mi>O</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">FeCO_3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+</ul>
+<p>主要冶炼方法：</p>
+<ol>
+<li><strong>高炉-转炉法</strong>：使用铁矿石。
+<ul>
+<li><strong>高炉还原</strong>：在高炉中将铁矿石还原为生铁（Roheisen）。基本反应为：
+<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><msub><mi>e</mi><mn>3</mn></msub><msub><mi>O</mi><mn>4</mn></msub><mo>+</mo><mn>2</mn><mi>C</mi><mo>→</mo><mn>3</mn><mi>F</mi><mi>e</mi><mo>+</mo><mn>2</mn><mi>C</mi><msub><mi>O</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">Fe_3O_4 + 2C \rightarrow 3Fe + 2CO_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord">3</span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord">2</span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0278em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></li>
+<li>生铁硬而脆，碳含量高，需进一步处理。</li>
+<li><strong>转炉精炼</strong>：在氧气顶吹转炉（Sauerstoff-Aufblaskonverter）中，通过向熔融生铁中吹入氧气，去除多余的碳（C）、硅（Si）、锰（Mn）、磷（P）、硫（S）等元素，将其转化为钢。</li>
+</ul>
+</li>
+<li><strong>电炉法</strong>：主要使用废钢（Stahlschrott）作为原料，在电弧炉（Elektro-Lichtbogenofen）中熔化并精炼。</li>
+</ol>
+<div class="sl-heading-wrapper level-h4"><h4 id="脱氧处理desoxidation">脱氧处理（Desoxidation）</h4><a class="sl-anchor-link" href="#脱氧处理desoxidation"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “脱氧处理（Desoxidation）”</span></a></div>
+<p>钢水在浇铸前需进行脱氧处理，根据脱氧程度分为三类：</p>
+<ul>
+<li><strong>沸腾钢（Unberuhigter Stahl）</strong>：标记为 FU。脱氧不完全，凝固时产生气体气泡和严重的偏析。</li>
+<li><strong>镇静钢（Beruhigter Stahl）</strong>：标记为 R。加入硅（Si）和锰（Mn）进行脱氧，气体产生少，凝固平静，但易形成中心缩孔。</li>
+<li><strong>特殊镇静钢（Besonders beruhigter Stahl）</strong>：标记为 FF。在镇静钢基础上额外加入铝（Al），形成细小的 AlN 颗粒。这能细化晶粒，从而显著提高冲击韧性（Kerbschlagzähigkeit）和抗时效性（Alterungsbeständigkeit）。</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="钢的分类与命名einteilung-und-bezeichnung-der-stähle">钢的分类与命名（Einteilung und Bezeichnung der Stähle）</h3><a class="sl-anchor-link" href="#钢的分类与命名einteilung-und-bezeichnung-der-stähle"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “钢的分类与命名（Einteilung und Bezeichnung der Stähle）”</span></a></div>
+<div class="sl-heading-wrapper level-h4"><h4 id="定义与基本分类">定义与基本分类</h4><a class="sl-anchor-link" href="#定义与基本分类"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “定义与基本分类”</span></a></div>
+<p><strong>钢（Stahl）</strong> 定义为碳含量 ≤ 2.06% 的所有铁合金（不包括生铁、铸铁等）。
+钢可按合金元素含量分为：</p>
+<ul>
+<li><strong>非合金钢（Unlegierter Stahl）</strong>：仅含铁、碳及常规伴生元素（Mn, Si, Cu, Al, S, P）。</li>
+<li><strong>合金钢（Legierter Stahl）</strong>：有意添加了其他合金元素。
+<ul>
+<li><strong>低合金钢（Niedrig legiert）</strong>：合金元素总含量 &#x3C; 5%。</li>
+<li><strong>高合金钢（Hoch legiert）</strong>：至少一种合金元素含量 > 5%。</li>
+</ul>
+</li>
+</ul>
+<div class="sl-heading-wrapper level-h4"><h4 id="主要品质等级hauptgüteklassen">主要品质等级（Hauptgüteklassen）</h4><a class="sl-anchor-link" href="#主要品质等级hauptgüteklassen"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “主要品质等级（Hauptgüteklassen）”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">特性</th><th align="left">质量钢（Qualitätsstahl, QS）</th><th align="left">优质钢（Edelstahl）</th></tr></thead><tbody><tr><td align="left"><strong>热处理适用性</strong></td><td align="left">通常不用于强化热处理</td><td align="left">专为热处理设计</td></tr><tr><td align="left"><strong>纯净度要求</strong></td><td align="left">对非金属夹杂物（如 P, S）无特殊要求，一般 P, S ≤ 0.045 wt.%</td><td align="left">对非金属夹杂物有严格要求，通常 P, S ≤ 0.035 wt.%</td></tr><tr><td align="left"><strong>性能要求</strong></td><td align="left">有规定的使用性能要求</td><td align="left">有精确的化学成分控制及特殊的制造和检验条件</td></tr><tr><td align="left"><strong>典型例子</strong></td><td align="left">通用结构钢（Allgemeine Baustähle）、细晶粒结构钢（Feinkornbaustähle）</td><td align="left">调质钢（Vergütungsstähle）、易切削钢（Automatenstähle）、渗碳钢（Einsatzstähle）、不锈钢（Nichtrostende Stähle）、热强钢（Warmfeste Stähle）、工具钢（Werkzeugstähle）等</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h4"><h4 id="规范命名体系normgerechte-benennung">规范命名体系（Normgerechte Benennung）</h4><a class="sl-anchor-link" href="#规范命名体系normgerechte-benennung"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “规范命名体系（Normgerechte Benennung）”</span></a></div>
+<p>钢的命名主要有两种体系：基于机械/物理性能和基于化学成分。</p>
+<p><strong>1. 基于性能的命名</strong>
+格式：<strong>用途字母 + 最小屈服强度值</strong></p>
+<ul>
+<li><strong>S</strong>：通用结构钢（例如 S235JR，屈服强度 ≥ 235 MPa）</li>
+<li><strong>P</strong>：压力容器钢（例如 P275）</li>
+<li><strong>L</strong>：管线钢</li>
+<li><strong>E</strong>：机械制造钢</li>
+<li>其他字母：M（电工钢）、D（冷成型用扁平材）、H（高强度冷轧扁平材）、T（薄板）</li>
+</ul>
+<p><strong>2. 基于化学成分的命名</strong></p>
+<ul>
+<li><strong>非合金钢（Mn &#x3C; 1%）</strong>：<code dir="auto">C</code> + 碳含量（×100）+ 附加符号
+<ul>
+<li>例：<code dir="auto">C45</code> 表示碳含量约 0.45% 的非合金质量钢；<code dir="auto">C45E</code> 表示同碳含量的非合金优质钢（S, P 含量更低）。</li>
+</ul>
+</li>
+<li><strong>低合金钢（合金元素 &#x3C; 5%）及 Mn > 1% 的非合金钢</strong>：碳含量（×100）+ 合金元素符号（按含量降序）+ 合金元素含量代码。
+<ul>
+<li>含量代码 = 实际含量（wt.%）× 因子。因子因元素而异：Cr, Co, Mn, Ni, Si, W 为 4；Al, Be, Cu, Mo, Nb, Ta, Ti, V, Zr 为 10；P, S, N, C, Ce 为 100；B 为 1000。</li>
+<li>例：<code dir="auto">13CrMo4-5</code> 表示 C≈0.13%, Cr≈1% (4/4), Mo≈0.5% (5/10)。</li>
+</ul>
+</li>
+<li><strong>高合金钢（至少一种元素 > 5%）</strong>：<code dir="auto">X</code> + 碳含量（×100）+ 合金元素符号（按含量降序）+ 合金元素实际含量（取整，用连字符分隔）。
+<ul>
+<li>例：<code dir="auto">X6CrNiNb18-10</code> 表示 C≈0.06%, Cr≈18%, Ni≈10%, Nb 含量 &#x3C;1%（未标出）。</li>
+<li>对于铸钢，前缀加 <code dir="auto">G</code>，如 <code dir="auto">GX5CrNiNb19-11</code>。</li>
+</ul>
+</li>
+</ul>
+<p><strong>3. 材料号（Werkstoffnummer）</strong>
+格式：<code dir="auto">1.XXXX XX</code>。首位 <code dir="auto">1</code> 代表钢。后续数字分组标识钢的种类。</p>
+<ul>
+<li>例：<code dir="auto">1.4301</code> 对应 <code dir="auto">X4CrNi18-10</code>（奥氏体不锈钢）；<code dir="auto">1.7225</code> 对应 <code dir="auto">42CrMo4</code>（调质钢）。</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="合金元素的作用wirkung-der-legierungselemente">合金元素的作用（Wirkung der Legierungselemente）</h3><a class="sl-anchor-link" href="#合金元素的作用wirkung-der-legierungselemente"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “合金元素的作用（Wirkung der Legierungselemente）”</span></a></div>
+<p>合金旨在通过改变微观结构（Gefüge）来改善材料性能。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="合金元素的分类">合金元素的分类</h4><a class="sl-anchor-link" href="#合金元素的分类"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “合金元素的分类”</span></a></div>
+<p>根据在铁中的行为，合金元素主要分为：</p>
+<ul>
+<li><strong>铁素体形成元素（Ferritbildner）</strong>：缩小或封闭 γ 相区（奥氏体区）。如 Cr, Al, Ti, Ta, Si, Mo, V, W。</li>
+<li><strong>奥氏体形成元素（Austenitbildner）</strong>：扩大 γ 相区。如 Ni, C, Co, Mn, N。</li>
+<li><strong>碳化物形成元素（Karbidbildner）</strong>：如 (Mn), Cr, Mo, V, Ta, Nb, Ti。</li>
+<li><strong>氮化物形成元素（Nitridbildner）</strong>：如 Al, B, Cr, Mo, Ta, V, Nb, Ti。</li>
+</ul>
+<div class="sl-heading-wrapper level-h4"><h4 id="对铁碳相图的影响">对铁碳相图的影响</h4><a class="sl-anchor-link" href="#对铁碳相图的影响"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “对铁碳相图的影响”</span></a></div>
+<ul>
+<li><strong>扩大 γ 相区</strong>：奥氏体形成元素（如 Ni, Mn）使 γ 相区向低温和低碳方向扩展。当添加量足够（如 ~30% Ni 或 ~35% Mn）时，奥氏体可稳定至室温，形成<strong>奥氏体钢</strong>。其特点：不可淬硬、无磁性、屈服强度低、韧性高、冷变形强化能力强、高温强度好。</li>
+<li><strong>缩小 γ 相区</strong>：铁素体形成元素（如 Cr, Mo, V）使 γ 相区收缩。当添加量足够（如 ≥13% Cr）时，γ 相区可能完全消失，形成<strong>铁素体钢</strong>。其特点：不可淬硬、有磁性、耐热。重要：铁素体形成元素可增强奥氏体形成元素的效果（例如在 X5CrNi18-10 钢中）。</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="铁碳相图基础eisen-kohlenstoff-diagramm">铁碳相图基础（Eisen-Kohlenstoff-Diagramm）</h3><a class="sl-anchor-link" href="#铁碳相图基础eisen-kohlenstoff-diagramm"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “铁碳相图基础（Eisen-Kohlenstoff-Diagramm）”</span></a></div>
+<p>铁碳相图是理解钢热处理的基础。它存在两个系统：</p>
+<ul>
+<li><strong>亚稳态系统</strong>：铁-渗碳体（Fe-Fe₃C）。</li>
+<li><strong>稳定系统</strong>：铁-石墨（Fe-C）。</li>
+</ul>
+<p>关键相和温度点：</p>
+<ul>
+<li><strong>相</strong>：液相（S）、δ铁素体（δ-Ferrit）、奥氏体（γ-Austenit）、铁素体（α-Ferrit）、渗碳体（Fe₃C）、石墨（G）。</li>
+<li><strong>关键线/点</strong>：A₄线（δ↔γ）、A₃线（γ↔α+γ）、A₁线（共析线，γ↔α+Fe₃C）、Acm线（γ↔γ+Fe₃C）。共析点（Eutektoid）在 723°C，0.8 wt.% C 处。</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="主要钢种群stahlgruppen">主要钢种群（Stahlgruppen）</h3><a class="sl-anchor-link" href="#主要钢种群stahlgruppen"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “主要钢种群（Stahlgruppen）”</span></a></div>
+<ul>
+<li><strong>结构钢（Baustähle）</strong>：DIN EN 10025，C &#x3C; 0.22%。</li>
+<li><strong>可淬硬机械制造钢（Härtbare Maschinenbaustähle）</strong>：DIN EN 10083，C 通常 0.22–0.65%。包括调质钢、表面淬火钢、氮化钢、渗碳钢、热强钢等。</li>
+<li><strong>不锈钢（Nichtrostende Stähle）</strong>：Cr ≥ 12%。包括马氏体/铁素体铬钢、奥氏体铬镍钢、奥氏体铬镍钼钢等。</li>
+<li><strong>高温用钢（Stähle für Hochtemperaturanwendungen）</strong>。</li>
+<li><strong>工具钢（Werkzeugstähle）</strong>。</li>
+<li><strong>弹簧钢（Federstähle）</strong>。</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="钢的热处理wärmebehandlung-von-stählen">钢的热处理（Wärmebehandlung von Stählen）</h3><a class="sl-anchor-link" href="#钢的热处理wärmebehandlung-von-stählen"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “钢的热处理（Wärmebehandlung von Stählen）”</span></a></div>
+<p>热处理旨在通过控制加热和冷却来改变钢的微观结构和性能。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="基本过程">基本过程</h4><a class="sl-anchor-link" href="#基本过程"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “基本过程”</span></a></div>
+<p>热处理过程包括：<strong>加热（Erwärmen）→ 保温（Halten）→ 冷却（Abkühlen）</strong>。加热方式包括外部热传导或内部生热。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="再结晶rekristallisation">再结晶（Rekristallisation）</h4><a class="sl-anchor-link" href="#再结晶rekristallisation"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “再结晶（Rekristallisation）”</span></a></div>
+<p>再结晶是冷变形金属在加热时，通过新晶粒的形核与长大，形成无应变新晶粒的过程。</p>
+<p><strong>影响因素：</strong></p>
+<ul>
+<li><strong>变形程度 φ</strong>：衡量偏离平衡状态的程度。变形程度越大，储存能越高，再结晶的驱动力越大。</li>
+<li><strong>退火温度</strong>：温度越高，原子扩散能力越强，再结晶越快。</li>
+<li><strong>退火时间</strong>：时间越长，再结晶过程越充分。</li>
+</ul>
+<p><strong>变形程度与组织的关系：</strong></p>
+<ul>
+<li><strong>弱变形</strong>：产生较少的再结晶核心，最终形成<strong>粗晶组织</strong>。</li>
+<li><strong>强变形</strong>：产生大量的再结晶核心，最终形成<strong>细晶组织</strong>。</li>
+<li>随着变形程度增加，再结晶驱动力增大，所需的<strong>再结晶温度降低</strong>。</li>
+</ul>
+<p><strong>再结晶过程的三个阶段：</strong></p>
+<ol>
+<li><strong>回复（Erholung）</strong></li>
+<li><strong>再结晶（Rekristallisation）</strong></li>
+<li><strong>晶粒长大（Kornwachstum）</strong></li>
+</ol>
+<div class="sl-heading-wrapper level-h4"><h4 id="主要热处理工艺">主要热处理工艺</h4><a class="sl-anchor-link" href="#主要热处理工艺"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “主要热处理工艺”</span></a></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">工艺</th><th align="left">目的</th><th align="left">说明</th></tr></thead><tbody><tr><td align="left"><strong>扩散退火（Diffusionsglühen）</strong></td><td align="left">均匀化成分</td><td align="left">高温长时间保温，促进元素扩散。</td></tr><tr><td align="left"><strong>粗晶退火（Grobkornglühen）</strong></td><td align="left">获得粗大晶粒</td><td align="left">用于特定性能需求。</td></tr><tr><td align="left"><strong>去应力退火（Spannungsarmglühen）</strong></td><td align="left">消除内应力</td><td align="left">加热至约 500-650°C，缓冷。</td></tr><tr><td align="left"><strong>再结晶退火（Rekristallisationsglühen）</strong></td><td align="left">消除冷作硬化</td><td align="left">将冷变形后的材料加热至约 500°C 至 Ac₃ 之间（通常 600-700°C），使变形晶粒重新形核和生长为新的等轴晶粒。<strong>注意</strong>：对于临界变形量（如 C&#x3C;0.2% 的钢变形量&#x3C;15%）的工件需谨慎，以防晶粒异常长大。</td></tr><tr><td align="left"><strong>软化退火（Weichglühen）</strong></td><td align="left">降低硬度，改善切削性</td><td align="left">加热至 Ac₁ 附近，缓冷，获得接近平衡态的组织。</td></tr><tr><td align="left"><strong>正火（Normalglühen）</strong></td><td align="left">细化晶粒，均匀组织</td><td align="left">加热至 Ac₃ 或 Accm 以上 30-50°C，空冷。</td></tr><tr><td align="left"><strong>淬火（Härten）</strong></td><td align="left">获得高硬度的非平衡组织（如马氏体）</td><td align="left">加热至奥氏体化温度，快速冷却（如水、油冷）。</td></tr><tr><td align="left"><strong>调质（Vergüten）</strong></td><td align="left">获得高强度与良好韧性的综合性能</td><td align="left"><strong>淬火 + 高温回火</strong>。回火使淬火马氏体转变为回火索氏体。</td></tr></tbody></table>
+<div class="sl-heading-wrapper level-h4"><h4 id="正火normalglühen详解">正火（Normalglühen）详解</h4><a class="sl-anchor-link" href="#正火normalglühen详解"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “正火（Normalglühen）详解”</span></a></div>
+<p><strong>目标：</strong> 获得尽可能细小、均匀的组织。</p>
+<p><strong>工艺：</strong></p>
+<ul>
+<li><strong>亚共析钢（untereutektoide Stähle）</strong>：快速加热至 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><msub><mi>c</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">Ac_3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal">A</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 线以上约 30-50 K，然后在空气中冷却。
+<ul>
+<li><strong>关键</strong>：避免过热和过长的保温时间，以防止粗晶形成。</li>
+</ul>
+</li>
+<li><strong>过共析钢（übereutektoide Stähle）</strong>：加热温度约为 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><msub><mi>c</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">Ac_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal">A</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 线以上 50 K，以避免粗晶和晶界渗碳体（KG-Zementit）的形成。</li>
+</ul>
+<p><strong>适用材料状态：</strong></p>
+<ul>
+<li>冷变形材料（拉长的晶粒）</li>
+<li>铸造组织（Gussgefüge）</li>
+<li>轧制组织（带状组织，Walzgefüge / Zeilengefüge）</li>
+<li>焊接接头组织</li>
+</ul>
+<div class="sl-heading-wrapper level-h4"><h4 id="淬火härten详解">淬火（Härten）详解</h4><a class="sl-anchor-link" href="#淬火härten详解"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “淬火（Härten）详解”</span></a></div>
+<p>淬火是一种通过快速冷却，使材料转变为非平衡组织（如马氏体）的热处理工艺。</p>
+<p><strong>温度控制过程：</strong></p>
+<ol>
+<li><strong>加热（Erwärmen, E）</strong></li>
+<li><strong>预热（Anwärmen, An）</strong></li>
+<li><strong>透烧（Durchwärmen, D）</strong></li>
+<li><strong>保温（Halten, H）</strong></li>
+<li><strong>冷却（Abkühlen, Ab）</strong></li>
+</ol>
+<p><strong>关键特性：</strong></p>
+<ul>
+<li><strong>淬透性（Härtbarkeit）</strong>：主要取决于<strong>碳含量</strong>。只有当碳完全固溶于奥氏体（Austenit）中时，才能达到最高硬度。</li>
+<li><strong>硬化深度（Einhärtetiefe）</strong>：取决于<strong>合金元素</strong>。合金元素（如Cr, Mo, Ni）能显著提高钢的淬透性，使硬化层更深。</li>
+</ul>
+<p><strong>不同钢种的硬化深度对比：</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">钢种类型</th><th align="left">示例</th><th align="left">硬化深度</th></tr></thead><tbody><tr><td align="left">非合金钢</td><td align="left">C45</td><td align="left">浅</td></tr><tr><td align="left">低合金钢</td><td align="left">42CrMo4</td><td align="left">中等</td></tr><tr><td align="left">高合金钢</td><td align="left">X20Cr13</td><td align="left">深</td></tr></tbody></table>
+<p><strong>连续冷却转变图（ZTU-Schaubild）</strong> 是预测淬火组织的重要工具，例如 C45 和 42CrMo4 的 ZTU 图。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="回火anlassen">回火（Anlassen）</h4><a class="sl-anchor-link" href="#回火anlassen"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “回火（Anlassen）”</span></a></div>
+<p>回火是将淬火后的钢加热到 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>A</mi><msub><mi>c</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">Ac_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal">A</span><span class="mord"><span class="mord mathnormal">c</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> 以下某一温度，保温后冷却的工艺，目的是调整性能，降低脆性。</p>
+<p><strong>回火的四个阶段：</strong></p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th align="left">阶段</th><th align="left">温度范围</th><th align="left">组织与性能变化</th></tr></thead><tbody><tr><td align="left"><strong>第一阶段</strong></td><td align="left">100-200 °C</td><td align="left">四方马氏体应力松弛；消除玻璃硬度；析出极细的 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">ε</span></span></span></span>-碳化物（Fe₂C）。</td></tr><tr><td align="left"><strong>第二阶段</strong></td><td align="left">200-350 °C</td><td align="left">立方马氏体进一步松弛；析出极细的渗碳体（Fe₃C）；残余奥氏体转变为立方马氏体。</td></tr><tr><td align="left"><strong>第三阶段</strong></td><td align="left">>350 °C</td><td align="left">渗碳体（Fe₃C）聚集粗化；材料的塑性和冲击韧性提高。</td></tr><tr><td align="left"><strong>第四阶段</strong> (针对抗回火钢)</td><td align="left">更高温度</td><td align="left">碳化物形成元素（Cr, V, Mo等）扩散速度慢，形成热力学稳定的特殊碳化物（如从约400°C开始溶解Fe₃C）。这推迟了强度下降，使钢在高温下仍能保持较高强度。</td></tr></tbody></table>
+<p><strong>合金元素的影响：</strong> 碳化物形成元素（如Cr, Mo, V）会降低碳的扩散速度，使回火过程中的强度下降向更高温度推迟，从而提高钢的<strong>抗回火性（Anlassbeständigkeit）</strong>。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="调质vergüten">调质（Vergüten）</h4><a class="sl-anchor-link" href="#调质vergüten"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “调质（Vergüten）”</span></a></div>
+<p>调质是<strong>淬火 + 高温回火</strong>的复合热处理工艺，目的是获得高强度与良好塑韧性相结合的<strong>回火索氏体</strong>组织。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="焊接性schweißen-von-stählen">焊接性（Schweißen von Stählen）</h4><a class="sl-anchor-link" href="#焊接性schweißen-von-stählen"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “焊接性（Schweißen von Stählen）”</span></a></div>
+<ul>
+<li><strong>无需特殊预防措施即可焊接的条件</strong>：碳含量 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi><mo>&#x3C;</mo><mn>0.22</mn><mi mathvariant="normal">%</mi></mrow><annotation encoding="application/x-tex">C &#x3C; 0.22\%</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&#x3C;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8056em;vertical-align:-0.0556em;"></span><span class="mord">0.22%</span></span></span></span>。</li>
+</ul>
+<div class="sl-heading-wrapper level-h2"><h2 id="关键考点">关键考点</h2><a class="sl-anchor-link" href="#关键考点"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “关键考点”</span></a></div>
+<ol>
+<li><strong>钢铁生产流程</strong>：高炉还原与转炉精炼的基本原理；沸腾钢、镇静钢、特殊镇静钢的区别与性能特点。</li>
+<li><strong>钢的分类</strong>：非合金钢与合金钢（低合金、高合金）的界定；质量钢与优质钢的核心区别（纯净度、热处理适用性）。</li>
+<li><strong>钢的命名</strong>：掌握基于性能（如 S235）和基于化学成分（如 C45, 13CrMo4-5, X6CrNiNb18-10）的命名规则，并能相互转换或解读。</li>
+<li><strong>合金元素作用</strong>：铁素体形成元素与奥氏体形成元素对 γ 相区的影响及其对钢性能（磁性、淬透性）的根本影响。</li>
+<li><strong>铁碳相图</strong>：识别关键相（α, γ, δ, Fe₃C）、线（A₁, A₃, Acm）和点（共析点），理解其与热处理温度的关系。</li>
+<li><strong>热处理工艺</strong>：区分退火、正火、淬火、调质的目的、典型温度范围和获得的组织/性能。特别是再结晶退火的条件和目的。</li>
+<li><strong>再结晶三要素</strong>：变形程度、退火温度、退火时间对再结晶过程及最终晶粒度的影响。</li>
+<li><strong>淬火核心概念</strong>：淬透性（取决于C）与硬化深度（取决于合金元素）的区别。</li>
+<li><strong>回火阶段</strong>：四个阶段的温度范围、主要组织转变及对性能的影响，特别是合金元素对第四阶段的作用。</li>
+<li><strong>焊接性判据</strong>：碳含量阈值（&#x3C;0.22%）。</li>
+</ol>
+<div class="sl-heading-wrapper level-h2"><h2 id="相关链接">相关链接</h2><a class="sl-anchor-link" href="#相关链接"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “相关链接”</span></a></div>
+<ul>
+<li><a href="/knowledge-site/notes/concepts/eisen-kohlenstoff-diagramm/">铁碳相图（Eisen-Kohlenstoff-Diagramm）</a></li>
+<li><a href="/knowledge-site/notes/concepts/martensit/">马氏体相变（Martensit）</a></li>
+<li><strong>TTT与CCT图（ZTU-Schaubild）</strong></li>
+<li><a href="/knowledge-site/notes/concepts/mechanische-eigenschaften/">材料的力学性能</a></li>
+<li><a href="/knowledge-site/notes/skills/haerten-und-vergueten/">淬火与调质（Härten und Vergüten）</a></li>
+<li><a href="/knowledge-site/notes/concepts/werkstoffkunde-klassifikation/">材料分类与工程材料</a></li>
+<li><strong>常用钢种牌号</strong></li>
+</ul> </div> <footer class="sl-flex astro-3yyafb3n"> <div class="meta sl-flex astro-3yyafb3n"> <a href="https://github.com/zhuosama/obsidian-wiki/edit/main/site/src/content/docs/notes/concepts/fe-simulation-grundlagen.md" class="sl-flex print:hidden astro-eez2twj6"><svg aria-hidden="true" class="astro-eez2twj6 astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>编辑此页</a> <p>最近更新： <time datetime="2026-04-29T00:00:00.000Z">2026年4月29日</time></p> </div> <div class="pagination-links print:hidden astro-u2l5gyhi" dir="ltr">   </div>  </footer> </div> </div>  </main> </div> </div> </div> </div> </body></html>
