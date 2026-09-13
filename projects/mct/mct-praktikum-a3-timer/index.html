@@ -1,0 +1,895 @@
+<!DOCTYPE html><html lang="zh-CN" dir="ltr" data-theme="dark" data-has-toc data-has-sidebar class="astro-bguv2lll"> <head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>A3 Timer 讲解 | 系统实验室</title><link rel="canonical" href="https://zhuosama.github.io/knowledge-site/projects/mct/mct-praktikum-a3-timer/"/><link rel="sitemap" href="/knowledge-site/sitemap-index.xml"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous"/><link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"/><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"系统实验室","url":"https://zhuosama.github.io/knowledge-site/","description":"面向工程学习、自动化系统与公开项目作品的个人系统实验室。","author":{"@type":"Person","name":"zhuosama","url":"https://github.com/zhuosama"},"inLanguage":"zh-CN"}</script><link rel="shortcut icon" href="/knowledge-site/favicon.svg" type="image/svg+xml"/><meta name="generator" content="Astro v6.4.4"/><meta name="generator" content="Starlight v0.39.3"/><meta property="og:title" content="A3 Timer 讲解"/><meta property="og:type" content="article"/><meta property="og:url" content="https://zhuosama.github.io/knowledge-site/projects/mct/mct-praktikum-a3-timer/"/><meta property="og:locale" content="zh-CN"/><meta property="og:description" content="A3 任务讲解页，按官方 Anleitung §4.3 (Professionelles Warten mit Timer) 对照当前 A3_Timer.c / A3_Timer_it.c 实现，含逐条要求达成检查、TIM6 状态机解释和 clean build 验证"/><meta property="og:site_name" content="系统实验室"/><meta name="twitter:card" content="summary_large_image"/><meta name="description" content="A3 任务讲解页，按官方 Anleitung §4.3 (Professionelles Warten mit Timer) 对照当前 A3_Timer.c / A3_Timer_it.c 实现，含逐条要求达成检查、TIM6 状态机解释和 clean build 验证"/><meta property="og:image" content="https://zhuosama.github.io/knowledge-site/og-image.png"/><meta name="twitter:image" content="https://zhuosama.github.io/knowledge-site/og-image.png"/><meta name="author" content="zhuosama"/><script>
+	window.StarlightThemeProvider = (() => {
+		const storedTheme =
+			typeof localStorage !== 'undefined' && localStorage.getItem('starlight-theme');
+		const theme =
+			storedTheme ||
+			(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+		document.documentElement.dataset.theme = theme === 'light' ? 'light' : 'dark';
+		return {
+			updatePickers(theme = storedTheme || 'auto') {
+				document.querySelectorAll('starlight-theme-select').forEach((picker) => {
+					const select = picker.querySelector('select');
+					if (select) select.value = theme;
+					/** @type {HTMLTemplateElement | null} */
+					const tmpl = document.querySelector(`#theme-icons`);
+					const newIcon = tmpl && tmpl.content.querySelector('.' + theme);
+					if (newIcon) {
+						const oldIcon = picker.querySelector('svg.label-icon');
+						if (oldIcon) {
+							oldIcon.replaceChildren(...newIcon.cloneNode(true).childNodes);
+						}
+					}
+				});
+			},
+		};
+	})();
+</script><template id="theme-icons"><svg aria-hidden="true" class="light astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M5 12a1 1 0 0 0-1-1H3a1 1 0 0 0 0 2h1a1 1 0 0 0 1-1Zm.64 5-.71.71a1 1 0 0 0 0 1.41 1 1 0 0 0 1.41 0l.71-.71A1 1 0 0 0 5.64 17ZM12 5a1 1 0 0 0 1-1V3a1 1 0 0 0-2 0v1a1 1 0 0 0 1 1Zm5.66 2.34a1 1 0 0 0 .7-.29l.71-.71a1 1 0 1 0-1.41-1.41l-.66.71a1 1 0 0 0 0 1.41 1 1 0 0 0 .66.29Zm-12-.29a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.71-.71a1.004 1.004 0 1 0-1.43 1.41l.73.71ZM21 11h-1a1 1 0 0 0 0 2h1a1 1 0 0 0 0-2Zm-2.64 6A1 1 0 0 0 17 18.36l.71.71a1 1 0 0 0 1.41 0 1 1 0 0 0 0-1.41l-.76-.66ZM12 6.5a5.5 5.5 0 1 0 5.5 5.5A5.51 5.51 0 0 0 12 6.5Zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Zm0 3.5a1 1 0 0 0-1 1v1a1 1 0 0 0 2 0v-1a1 1 0 0 0-1-1Z"/></svg><svg aria-hidden="true" class="dark astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.049 8.049 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.59 8.59 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05Zm-9.5 6.69A8.14 8.14 0 0 1 7.08 5.22v.27a10.15 10.15 0 0 0 10.14 10.14 9.784 9.784 0 0 0 2.1-.22 8.11 8.11 0 0 1-7.18 4.32v-.04Z"/></svg><svg aria-hidden="true" class="auto astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg></template><link rel="stylesheet" href="/knowledge-site/_astro/print.DNXP8c50.css" media="print"><link rel="stylesheet" href="/knowledge-site/_astro/Page.B-1qtOo7.css"><script type="module" src="/knowledge-site/_astro/page.B_tncCx8.js"></script></head> <body class="astro-bguv2lll"> <a href="#_top" class="astro-7q3lir66">跳转到内容</a> <div class="page sl-flex astro-vrdttmbt"> <header class="header astro-vrdttmbt"><div class="header astro-kmkmnagf"> <div class="title-wrapper sl-flex astro-kmkmnagf"> <a href="/knowledge-site/" class="site-title sl-flex astro-m46x6ez3">  <img class="astro-m46x6ez3" alt="系统实验室" src="/knowledge-site/_astro/logo.DLu7WHiV.svg" width="64" height="64">  <span class="astro-m46x6ez3" translate="no"> 系统实验室 </span> </a> </div> <div class="sl-flex print:hidden astro-kmkmnagf"> <site-search class="astro-kmkmnagf astro-v37mnknz" data-translations="{&quot;placeholder&quot;:&quot;搜索&quot;}"> <button data-open-modal disabled aria-label="搜索" aria-keyshortcuts="Control+K" class="astro-v37mnknz"> <svg aria-hidden="true" class="astro-v37mnknz astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21.71 20.29 18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.39ZM11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg> <span class="sl-hidden md:sl-block astro-v37mnknz" aria-hidden="true">搜索</span> <kbd class="sl-hidden md:sl-flex astro-v37mnknz" style="display: none;"> <kbd class="astro-v37mnknz">Ctrl</kbd><kbd class="astro-v37mnknz">K</kbd> </kbd> </button> <dialog style="padding:0" aria-label="搜索" class="astro-v37mnknz"> <div class="dialog-frame sl-flex astro-v37mnknz">  <button data-close-modal class="sl-flex md:sl-hidden astro-v37mnknz"> 取消 </button> <div class="search-container astro-v37mnknz"> <div id="starlight__search" class="astro-v37mnknz"></div> </div> </div> </dialog> </site-search>  <script>
+	(() => {
+		const openBtn = document.querySelector('button[data-open-modal]');
+		const shortcut = openBtn?.querySelector('kbd');
+		if (!openBtn || !(shortcut instanceof HTMLElement)) return;
+		const platformKey = shortcut.querySelector('kbd');
+		if (platformKey && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)) {
+			platformKey.textContent = '⌘';
+			openBtn.setAttribute('aria-keyshortcuts', 'Meta+K');
+		}
+		shortcut.style.display = '';
+	})();
+</script> <script type="module" src="/knowledge-site/_astro/Search.astro_astro_type_script_index_0_lang.LAi8CP1H.js"></script>  </div> <div class="sl-hidden md:sl-flex print:hidden right-group astro-kmkmnagf"> <div class="sl-flex social-icons astro-kmkmnagf"> <a href="https://github.com/zhuosama" rel="me" class="sl-flex astro-wy4te6ga"><span class="sr-only astro-wy4te6ga">GitHub</span><svg aria-hidden="true" class="astro-wy4te6ga astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a> </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-4yphtoen"> <span class="sr-only astro-4yphtoen">选择主题</span> <svg aria-hidden="true" class="icon label-icon astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg> <select autocomplete="off" class="astro-4yphtoen"> <option value="dark" class="astro-4yphtoen">深色</option><option value="light" class="astro-4yphtoen">浅色</option><option value="auto" selected class="astro-4yphtoen">自动</option> </select> <svg aria-hidden="true" class="icon caret astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg> </label> </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script> <script type="module">const r="starlight-theme",o=e=>e==="auto"||e==="dark"||e==="light"?e:"auto",c=()=>o(typeof localStorage<"u"&&localStorage.getItem(r));function n(e){typeof localStorage<"u"&&localStorage.setItem(r,e==="light"||e==="dark"?e:"")}const l=()=>matchMedia("(prefers-color-scheme: light)").matches?"light":"dark";function t(e){StarlightThemeProvider.updatePickers(e),document.documentElement.dataset.theme=e==="auto"?l():e,n(e)}matchMedia("(prefers-color-scheme: light)").addEventListener("change",()=>{c()==="auto"&&t("auto")});class s extends HTMLElement{constructor(){super(),t(c()),this.querySelector("select")?.addEventListener("change",a=>{a.currentTarget instanceof HTMLSelectElement&&t(o(a.currentTarget.value))})}}customElements.define("starlight-theme-select",s);</script> <script type="module">class s extends HTMLElement{constructor(){super();const e=this.querySelector("select");e&&(e.addEventListener("change",t=>{t.currentTarget instanceof HTMLSelectElement&&(window.location.pathname=t.currentTarget.value)}),window.addEventListener("pageshow",t=>{if(!t.persisted)return;const n=e.querySelector("option[selected]")?.index;n!==e.selectedIndex&&(e.selectedIndex=n??0)}))}}customElements.define("starlight-lang-select",s);</script> </div> </div></header> <nav class="sidebar print:hidden astro-vrdttmbt" aria-label="主要"> <starlight-menu-button class="print:hidden astro-jif73yzw"> <button aria-expanded="false" aria-label="菜单" aria-controls="starlight__sidebar" class="sl-flex md:sl-hidden astro-jif73yzw"> <svg aria-hidden="true" class="open-menu astro-jif73yzw astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M3 8h18a1 1 0 1 0 0-2H3a1 1 0 0 0 0 2Zm18 8H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Zm0-5H3a1 1 0 0 0 0 2h18a1 1 0 0 0 0-2Z"/></svg> <svg aria-hidden="true" class="close-menu astro-jif73yzw astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="m13.41 12 6.3-6.29a1.004 1.004 0 1 0-1.42-1.42L12 10.59l-6.29-6.3a1.004 1.004 0 0 0-1.42 1.42l6.3 6.29-6.3 6.29a1 1 0 0 0 0 1.42.998.998 0 0 0 1.42 0l6.29-6.3 6.29 6.3a.999.999 0 0 0 1.42 0 1 1 0 0 0 0-1.42L13.41 12Z"/></svg> </button> </starlight-menu-button> <script type="module">class s extends HTMLElement{constructor(){super(),this.btn=this.querySelector("button"),this.btn.addEventListener("click",()=>this.toggleExpanded());const t=this.closest("nav");t&&t.addEventListener("keyup",e=>this.closeOnEscape(e))}setExpanded(t){this.setAttribute("aria-expanded",String(t)),document.body.toggleAttribute("data-mobile-menu-expanded",t)}toggleExpanded(){this.setExpanded(this.getAttribute("aria-expanded")!=="true")}closeOnEscape(t){t.code==="Escape"&&(this.setExpanded(!1),this.btn.focus())}}customElements.define("starlight-menu-button",s);</script>  <div id="starlight__sidebar" class="sidebar-pane astro-vrdttmbt"> <div class="sidebar-content sl-flex astro-vrdttmbt"> <sl-sidebar-state-persist data-hash="0x41keo" class="astro-kku4brbg"> <script aria-hidden="true">
+		(() => {
+			try {
+				if (!matchMedia('(min-width: 50em)').matches) return;
+				/** @type {HTMLElement | null} */
+				const target = document.querySelector('sl-sidebar-state-persist');
+				const state = JSON.parse(sessionStorage.getItem('sl-sidebar-state') || '0');
+				if (!target || !state || target.dataset.hash !== state.hash) return;
+				window._starlightScrollRestore = state.scroll;
+				customElements.define(
+					'sl-sidebar-restore',
+					class SidebarRestore extends HTMLElement {
+						connectedCallback() {
+							try {
+								const idx = parseInt(this.dataset.index || '');
+								const details = this.closest('details');
+								if (details && typeof state.open[idx] === 'boolean') details.open = state.open[idx];
+							} catch {}
+						}
+					}
+				);
+			} catch {}
+		})();
+	</script>  <ul class="top-level astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/" class="large astro-3ii7xxms"> <span class="astro-3ii7xxms">首页</span>  </a> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">Systems 系统</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="0"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/systems/hermes-virtual-trader/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Hermes 投资系统</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/systems/hermes-virtual-trader/architecture/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">系统架构</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/systems/hermes-virtual-trader/strategy-iteration/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">策略迭代</span>  </a> </li> </ul> </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">专题</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="1"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">专题总览</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/mct/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">MCT 微计算机技术</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/k2/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">K2 机械构造</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/materials/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Werkstofftechnik 材料科学</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/mechatronik/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Mechatronik 机电组件</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/topics/syt/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">SYT 系统理论</span>  </a> </li> </ul> </details> </li><li class="astro-3ii7xxms"> <details open class="astro-3ii7xxms"> <summary class="astro-3ii7xxms"> <span class="group-label astro-3ii7xxms"> <span class="large astro-3ii7xxms">项目作品 Portfolio</span>  </span> <svg aria-hidden="true" class="caret astro-3ii7xxms astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.25rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg> </summary> <sl-sidebar-restore data-index="2"></sl-sidebar-restore> <ul class="astro-3ii7xxms"> <li class="astro-3ii7xxms"> <a href="/knowledge-site/projects/mct/mct-praktikum-lernindex/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">MCT 微计算机技术</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/projects/agentmemory/readme/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">AgentMemory 共享记忆</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/projects/trading/trading-agent-to-virtual-trader/" class="astro-3ii7xxms"> <span class="astro-3ii7xxms">Trading → Virtual Trader</span>  </a> </li> </ul> </details> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/agent-memory/dashboard/" class="large astro-3ii7xxms"> <span class="astro-3ii7xxms">AgentMemory 大盘</span>  </a> </li><li class="astro-3ii7xxms"> <a href="/knowledge-site/search/" class="large astro-3ii7xxms"> <span class="astro-3ii7xxms">搜索</span>  </a> </li> </ul>  <script aria-hidden="true">
+		(() => {
+			const scroller = document.getElementById('starlight__sidebar');
+			if (!window._starlightScrollRestore || !scroller) return;
+			scroller.scrollTop = window._starlightScrollRestore;
+			delete window._starlightScrollRestore;
+		})();
+	</script> </sl-sidebar-state-persist> <div class="md:sl-hidden"> <div class="mobile-preferences sl-flex astro-wu23bvmt"> <div class="social-icons astro-wu23bvmt"> <a href="https://github.com/zhuosama" rel="me" class="sl-flex astro-wy4te6ga"><span class="sr-only astro-wy4te6ga">GitHub</span><svg aria-hidden="true" class="astro-wy4te6ga astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M12 .3a12 12 0 0 0-3.8 23.38c.6.12.83-.26.83-.57L9 21.07c-3.34.72-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.08-.74.09-.73.09-.73 1.2.09 1.83 1.24 1.83 1.24 1.08 1.83 2.81 1.3 3.5 1 .1-.78.42-1.31.76-1.61-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.28-1.55 3.29-1.23 3.29-1.23.64 1.66.24 2.88.12 3.18a4.65 4.65 0 0 1 1.23 3.22c0 4.61-2.8 5.63-5.48 5.92.42.36.81 1.1.81 2.22l-.01 3.29c0 .31.2.69.82.57A12 12 0 0 0 12 .3Z"/></svg></a> </div> <starlight-theme-select>  <label style="--sl-select-width: 6.25em" class="astro-4yphtoen"> <span class="sr-only astro-4yphtoen">选择主题</span> <svg aria-hidden="true" class="icon label-icon astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M21 14h-1V7a3 3 0 0 0-3-3H7a3 3 0 0 0-3 3v7H3a1 1 0 0 0-1 1v2a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-2a1 1 0 0 0-1-1ZM6 7a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7H6V7Zm14 10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-1h16v1Z"/></svg> <select autocomplete="off" class="astro-4yphtoen"> <option value="dark" class="astro-4yphtoen">深色</option><option value="light" class="astro-4yphtoen">浅色</option><option value="auto" selected class="astro-4yphtoen">自动</option> </select> <svg aria-hidden="true" class="icon caret astro-4yphtoen astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1em;"><path d="M17 9.17a1 1 0 0 0-1.41 0L12 12.71 8.46 9.17a1 1 0 1 0-1.41 1.42l4.24 4.24a1.002 1.002 0 0 0 1.42 0L17 10.59a1.002 1.002 0 0 0 0-1.42Z"/></svg> </label> </starlight-theme-select>  <script>
+	StarlightThemeProvider.updatePickers();
+</script>   </div> </div> </div> </div> </nav> <div class="main-frame astro-vrdttmbt">  <script type="module">const a=document.getElementById("starlight__sidebar"),n=a?.querySelector("sl-sidebar-state-persist"),o="sl-sidebar-state",i=()=>{let t=[];const e=n?.dataset.hash||"";try{const s=sessionStorage.getItem(o),r=JSON.parse(s||"{}");Array.isArray(r.open)&&r.hash===e&&(t=r.open)}catch{}return{hash:e,open:t,scroll:a?.scrollTop||0}},c=t=>{try{sessionStorage.setItem(o,JSON.stringify(t))}catch{}},d=()=>c(i()),l=(t,e)=>{const s=i();s.open[e]=t,c(s)};n?.addEventListener("click",t=>{if(!(t.target instanceof Element))return;const e=t.target.closest("summary")?.closest("details");if(!e)return;const s=e.querySelector("sl-sidebar-restore"),r=parseInt(s?.dataset.index||"");isNaN(r)||l(!e.open,r)});addEventListener("visibilitychange",()=>{document.visibilityState==="hidden"&&d()});addEventListener("pageHide",d);</script> <div class="lg:sl-flex astro-67yu43on"> <aside class="right-sidebar-container print:hidden astro-67yu43on"> <div class="right-sidebar astro-67yu43on"> <div class="lg:sl-hidden astro-pb3aqygn"><mobile-starlight-toc data-min-h="2" data-max-h="3" class="astro-doynk5tl"><nav aria-labelledby="starlight__on-this-page--mobile" class="astro-doynk5tl"><details id="starlight__mobile-toc" class="astro-doynk5tl"><summary id="starlight__on-this-page--mobile" class="sl-flex astro-doynk5tl"><span class="toggle sl-flex astro-doynk5tl">本页内容<svg aria-hidden="true" class="caret astro-doynk5tl astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1rem;"><path d="m14.83 11.29-4.24-4.24a1 1 0 1 0-1.42 1.41L12.71 12l-3.54 3.54a1 1 0 0 0 0 1.41 1 1 0 0 0 .71.29 1 1 0 0 0 .71-.29l4.24-4.24a1.002 1.002 0 0 0 0-1.42Z"/></svg></span><span class="display-current astro-doynk5tl"></span></summary><div class="dropdown astro-doynk5tl"><ul class="isMobile astro-gnoq344e" style="--depth: 0;"> <li class="astro-gnoq344e" style="--depth: 0;"> <a href="#_top" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">概述</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#材料一致性说明" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">材料一致性说明</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#anleitung-43-要求逐条对照" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">Anleitung 4.3 要求逐条对照</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#构建与运行验证" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">构建与运行验证</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#vorbereitungsfragen-答案要点" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">Vorbereitungsfragen 答案要点</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#任务目标" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">任务目标</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#前置任务已知内容" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">前置任务已知内容</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#本任务新增的思路" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">本任务新增的思路</span> </a> <ul class="isMobile astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-时间不再靠-cpu-空转而靠-tim6-提供节拍" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. 时间不再靠 CPU 空转，而靠 TIM6 提供节拍</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-a3-不再是顺着一段大流程跑到底" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. A3 不再是“顺着一段大流程跑到底”</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-a3-的分工不再是-a2-那种isr-触发main-执行业务" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. A3 的分工不再是 A2 那种“ISR 触发、main 执行业务”</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-蓝灯闪烁不能只靠一个总时间变量" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. 蓝灯闪烁不能只靠一个总时间变量</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#本任务新增的语法--寄存器--机制" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">本任务新增的语法 / 寄存器 / 机制</span> </a> <ul class="isMobile astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#traffic_state_t-是什么为什么要先定义它" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">traffic_state_t 是什么，为什么要先定义它</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#a3-新变量总表" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">A3 新变量总表</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么这些变量都写成-volatile" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么这些变量都写成 volatile</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#tim6-为什么会在-a3-出现" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">TIM6 为什么会在 A3 出现</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#timer_init-逐句解释" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">Timer_init() 逐句解释</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#isr_timer-为什么先清-uif-再做逻辑" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">ISR_Timer() 为什么先清 UIF 再做逻辑</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#__wfi-是什么为什么-a3-主循环只剩它" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">__WFI() 是什么，为什么 A3 主循环只剩它</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#traffic_state_enter-为什么是-a3-的核心函数" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">Traffic_state_enter() 为什么是 A3 的核心函数</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#traffic_timer_tick-是真正的时间推进器" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">Traffic_timer_tick() 是真正的“时间推进器”</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#g_blue_led_on--1u-这句怎么读" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">g_blue_led_on ^= 1U; 这句怎么读</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#g_blue_led_on--mask_led_blue--0u-怎么读" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">(g_blue_led_on ? MASK_LED_BLUE : 0U) 怎么读</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#代码总体流程" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">代码总体流程</span> </a> <ul class="isMobile astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-上电后的初始化链" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. 上电后的初始化链</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-按钮按下后的执行链" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. 按钮按下后的执行链</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-timer-每-1-ms-推进一次的执行链" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. timer 每 1 ms 推进一次的执行链</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-行人阶段为什么更特殊" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. 行人阶段为什么更特殊</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#5-为什么主循环几乎没有业务逻辑" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">5. 为什么主循环几乎没有业务逻辑</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#关键改动总结" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">关键改动总结</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#老师可能追问的问题与回答" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">老师可能追问的问题与回答</span> </a> <ul class="isMobile astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么-a3-还保留-isr_s0不直接全靠-timer" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么 A3 还保留 ISR_S0()，不直接全靠 timer？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么不用-a2-那样的主循环--flag--delay" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么不用 A2 那样的主循环 + flag + delay()？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么要用状态机不直接写一连串-if--delay" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么要用状态机，不直接写一连串 if / delay？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么蓝灯要单独再加-g_blue_toggle_ms" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么蓝灯要单独再加 g_blue_toggle_ms？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么主循环只剩-__wfi-反而是更好的设计" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么主循环只剩 __WFI() 反而是更好的设计？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#tim6-egr--tim_egr_ug-为什么不能省" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">TIM6-&gt;EGR = TIM_EGR_UG; 为什么不能省？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#可以直接这样口头讲给老师" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">可以直接这样口头讲给老师</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#本任务中最容易看不懂的代码逐句解释" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">本任务中最容易看不懂的代码逐句解释</span> </a> <ul class="isMobile astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-tim6_psc_value--1599u-和-tim6_arr_value--9u-为什么能得到-1-ms" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. TIM6_PSC_VALUE = 1599U 和 TIM6_ARR_VALUE = 9U 为什么能得到 1 ms</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-traffic_state_enter-为什么一进函数就先写-3-个变量" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. Traffic_state_enter() 为什么一进函数就先写 3 个变量</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-行人阶段这-4-句为什么要一起看" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. 行人阶段这 4 句为什么要一起看</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-tim6-sr--tim_sr_uif-这句为什么不是写-1" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. TIM6-&gt;SR &amp;= ~TIM_SR_UIF; 这句为什么不是写 1</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#5-这一整句到底在干嘛" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">5. 这一整句到底在干嘛</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#代码细节补遗代码审查中发现的设计取舍" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">代码细节补遗（代码审查中发现的设计取舍）</span> </a> <ul class="isMobile astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-中断优先级故意把-exti0-设得比-tim6-高" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. 中断优先级故意把 EXTI0 设得比 TIM6 高</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-isr_s0-天然防抖针对启动事件" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. ISR_S0 天然防抖（针对启动事件）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-tim6-sr-清零方式与-exti-pr1-不同" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. TIM6 SR 清零方式与 EXTI PR1 不同</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-行人阶段的双时间节拍如何不互相冲突" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. 行人阶段的「双时间」节拍如何不互相冲突</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#5-启动顺序为什么-traffic_state_enteridle_green-要放在-__enable_irq-之前" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">5. 启动顺序：为什么 Traffic_state_enter(IDLE_GREEN) 要放在 __enable_irq() 之前</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#相关链接" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">相关链接</span> </a>  </li> </ul></div></details></nav></mobile-starlight-toc><script type="module" src="/knowledge-site/_astro/MobileTableOfContents.astro_astro_type_script_index_0_lang.hwBsy0Mo.js"></script></div><div class="right-sidebar-panel sl-hidden lg:sl-block astro-pb3aqygn"><div class="sl-container astro-pb3aqygn"><starlight-toc data-min-h="2" data-max-h="3"><nav aria-labelledby="starlight__on-this-page"><h2 id="starlight__on-this-page">本页内容</h2><ul class="astro-gnoq344e" style="--depth: 0;"> <li class="astro-gnoq344e" style="--depth: 0;"> <a href="#_top" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">概述</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#材料一致性说明" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">材料一致性说明</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#anleitung-43-要求逐条对照" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">Anleitung 4.3 要求逐条对照</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#构建与运行验证" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">构建与运行验证</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#vorbereitungsfragen-答案要点" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">Vorbereitungsfragen 答案要点</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#任务目标" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">任务目标</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#前置任务已知内容" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">前置任务已知内容</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#本任务新增的思路" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">本任务新增的思路</span> </a> <ul class="astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-时间不再靠-cpu-空转而靠-tim6-提供节拍" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. 时间不再靠 CPU 空转，而靠 TIM6 提供节拍</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-a3-不再是顺着一段大流程跑到底" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. A3 不再是“顺着一段大流程跑到底”</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-a3-的分工不再是-a2-那种isr-触发main-执行业务" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. A3 的分工不再是 A2 那种“ISR 触发、main 执行业务”</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-蓝灯闪烁不能只靠一个总时间变量" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. 蓝灯闪烁不能只靠一个总时间变量</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#本任务新增的语法--寄存器--机制" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">本任务新增的语法 / 寄存器 / 机制</span> </a> <ul class="astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#traffic_state_t-是什么为什么要先定义它" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">traffic_state_t 是什么，为什么要先定义它</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#a3-新变量总表" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">A3 新变量总表</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么这些变量都写成-volatile" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么这些变量都写成 volatile</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#tim6-为什么会在-a3-出现" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">TIM6 为什么会在 A3 出现</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#timer_init-逐句解释" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">Timer_init() 逐句解释</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#isr_timer-为什么先清-uif-再做逻辑" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">ISR_Timer() 为什么先清 UIF 再做逻辑</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#__wfi-是什么为什么-a3-主循环只剩它" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">__WFI() 是什么，为什么 A3 主循环只剩它</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#traffic_state_enter-为什么是-a3-的核心函数" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">Traffic_state_enter() 为什么是 A3 的核心函数</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#traffic_timer_tick-是真正的时间推进器" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">Traffic_timer_tick() 是真正的“时间推进器”</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#g_blue_led_on--1u-这句怎么读" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">g_blue_led_on ^= 1U; 这句怎么读</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#g_blue_led_on--mask_led_blue--0u-怎么读" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">(g_blue_led_on ? MASK_LED_BLUE : 0U) 怎么读</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#代码总体流程" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">代码总体流程</span> </a> <ul class="astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-上电后的初始化链" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. 上电后的初始化链</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-按钮按下后的执行链" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. 按钮按下后的执行链</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-timer-每-1-ms-推进一次的执行链" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. timer 每 1 ms 推进一次的执行链</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-行人阶段为什么更特殊" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. 行人阶段为什么更特殊</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#5-为什么主循环几乎没有业务逻辑" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">5. 为什么主循环几乎没有业务逻辑</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#关键改动总结" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">关键改动总结</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#老师可能追问的问题与回答" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">老师可能追问的问题与回答</span> </a> <ul class="astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么-a3-还保留-isr_s0不直接全靠-timer" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么 A3 还保留 ISR_S0()，不直接全靠 timer？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么不用-a2-那样的主循环--flag--delay" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么不用 A2 那样的主循环 + flag + delay()？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么要用状态机不直接写一连串-if--delay" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么要用状态机，不直接写一连串 if / delay？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么蓝灯要单独再加-g_blue_toggle_ms" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么蓝灯要单独再加 g_blue_toggle_ms？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#为什么主循环只剩-__wfi-反而是更好的设计" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">为什么主循环只剩 __WFI() 反而是更好的设计？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#tim6-egr--tim_egr_ug-为什么不能省" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">TIM6-&gt;EGR = TIM_EGR_UG; 为什么不能省？</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#可以直接这样口头讲给老师" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">可以直接这样口头讲给老师</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#本任务中最容易看不懂的代码逐句解释" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">本任务中最容易看不懂的代码逐句解释</span> </a> <ul class="astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-tim6_psc_value--1599u-和-tim6_arr_value--9u-为什么能得到-1-ms" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. TIM6_PSC_VALUE = 1599U 和 TIM6_ARR_VALUE = 9U 为什么能得到 1 ms</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-traffic_state_enter-为什么一进函数就先写-3-个变量" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. Traffic_state_enter() 为什么一进函数就先写 3 个变量</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-行人阶段这-4-句为什么要一起看" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. 行人阶段这 4 句为什么要一起看</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-tim6-sr--tim_sr_uif-这句为什么不是写-1" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. TIM6-&gt;SR &amp;= ~TIM_SR_UIF; 这句为什么不是写 1</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#5-这一整句到底在干嘛" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">5. 这一整句到底在干嘛</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#代码细节补遗代码审查中发现的设计取舍" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">代码细节补遗（代码审查中发现的设计取舍）</span> </a> <ul class="astro-gnoq344e" style="--depth: 1;"> <li class="astro-gnoq344e" style="--depth: 1;"> <a href="#1-中断优先级故意把-exti0-设得比-tim6-高" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">1. 中断优先级故意把 EXTI0 设得比 TIM6 高</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#2-isr_s0-天然防抖针对启动事件" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">2. ISR_S0 天然防抖（针对启动事件）</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#3-tim6-sr-清零方式与-exti-pr1-不同" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">3. TIM6 SR 清零方式与 EXTI PR1 不同</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#4-行人阶段的双时间节拍如何不互相冲突" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">4. 行人阶段的「双时间」节拍如何不互相冲突</span> </a>  </li><li class="astro-gnoq344e" style="--depth: 1;"> <a href="#5-启动顺序为什么-traffic_state_enteridle_green-要放在-__enable_irq-之前" class="astro-gnoq344e" style="--depth: 1;"> <span class="astro-gnoq344e" style="--depth: 1;">5. 启动顺序：为什么 Traffic_state_enter(IDLE_GREEN) 要放在 __enable_irq() 之前</span> </a>  </li> </ul> </li><li class="astro-gnoq344e" style="--depth: 0;"> <a href="#相关链接" class="astro-gnoq344e" style="--depth: 0;"> <span class="astro-gnoq344e" style="--depth: 0;">相关链接</span> </a>  </li> </ul></nav></starlight-toc><script type="module" src="/knowledge-site/_astro/TableOfContents.astro_astro_type_script_index_0_lang.FuRcXuRY.js"></script></div></div> </div> </aside> <div class="main-pane astro-67yu43on">  <main data-pagefind-body class="astro-bguv2lll" lang="zh-CN" dir="ltr">    <div class="content-panel astro-7nkwcw3z"> <div class="sl-container astro-7nkwcw3z"> <h1 id="_top" class="astro-j6tvhyss">A3 Timer 讲解</h1> </div> </div> <div class="content-panel astro-7nkwcw3z"> <div class="sl-container astro-7nkwcw3z"> <div class="sl-markdown-content"> <div class="sl-heading-wrapper level-h1"><h1 id="a3-timer-讲解">A3 Timer 讲解</h1><a class="sl-anchor-link" href="#a3-timer-讲解"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “A3 Timer 讲解”</span></a></div>
+<div class="sl-heading-wrapper level-h2"><h2 id="材料一致性说明">材料一致性说明</h2><a class="sl-anchor-link" href="#材料一致性说明"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “材料一致性说明”</span></a></div>
+<p>在正式讲 A3 之前，先说明当前材料里有 3 个一致性要点：</p>
+<ol>
+<li>
+<p><strong>A3 的题面文档已找到</strong>（2026-05-04 复核）<br>
+官方任务说明在：</p>
+<ul>
+<li><code dir="auto">D:/Onedrive/lernen/BMF4/MCT/mct_med_mf_workspace_25w/MCT_Praktikum_BMED_BMF_Anleitung_V001_STefi_Light.pdf</code> §4.3（第 16 页）<br>
+标题为 <em>Aufgabe 3 – Professionelles Warten mit Timer</em>。<br>
+后文「Anleitung 4.3 要求逐条对照」一节会把每一条 Bearbeitungsschritt 对应到 A3_Timer.c / A3_Timer_it.c 的具体实现位置。</li>
+</ul>
+</li>
+<li>
+<p><strong><code dir="auto">A3_Timer_it.c</code> 的文件头标题写成了“Entprellen”</strong><br>
+它的第一行写的是：</p>
+<ul>
+<li><code dir="auto">Project: Aufgabe3 - Professionelles Entprellen mit Timer</code>
+这和 A4 的“Debounce / Entprellen”更像，和 A3 的 Timer 主题不一致。<br>
+但它的中断向量表实际绑定的是：</li>
+<li><code dir="auto">ISR_S0</code></li>
+<li><code dir="auto">ISR_Timer</code>
+所以实际功能仍然是 A3 Timer，不是 A4。这只是注释 typo，不影响功能；如果老师抽查注释可以主动指出。</li>
+</ul>
+</li>
+<li>
+<p><strong>A2 的讲解结构不再完全适用于 A3 当前代码</strong><br>
+A2 的核心分层是：</p>
+<ul>
+<li>ISR 只置位 flag</li>
+<li>主循环执行整个交通灯流程</li>
+</ul>
+<p>但 A3 当前代码已经变成：</p>
+<ul>
+<li><code dir="auto">ISR_S0()</code> 只负责启动状态机</li>
+<li><code dir="auto">ISR_Timer()</code> 每 1 ms 推进状态</li>
+<li>主循环几乎不再执行业务逻辑，只负责 <code dir="auto">__WFI()</code></li>
+</ul>
+</li>
+</ol>
+<p>因此，本页会<strong>按当前 A3 实际代码来讲</strong>，而不是机械沿用 A2 的结构描述。</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="anleitung-43-要求逐条对照">Anleitung 4.3 要求逐条对照</h2><a class="sl-anchor-link" href="#anleitung-43-要求逐条对照"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Anleitung 4.3 要求逐条对照”</span></a></div>
+<blockquote>
+<p>来源：MCT_Praktikum_BMED_BMF_Anleitung_V001_STefi_Light.pdf §4.3, S.16</p>
+</blockquote>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Anleitung Bearbeitung</th><th>当前实现</th><th>状态</th></tr></thead><tbody><tr><td><strong>a.</strong> Programm aus A2 anpassen, Quelltexte in A3 Workspace kopieren</td><td>A3_Timer 项目独立存在，沿用 A2 的 STefi-Light.h、startup、linker script</td><td>✅</td></tr><tr><td><strong>b.</strong> S0 soll wie in A2 das Umschalten der Ampeln durch ein Interrupt auslösen</td><td><code dir="auto">ISR_S0()</code> 由 EXTI0 下降沿触发，调用 <code dir="auto">Traffic_state_enter(TRAFFIC_STATE_WAIT_GREEN)</code> 启动序列</td><td>✅</td></tr><tr><td><strong>c.</strong> Beseitigen Sie die Busy-Wait Wartezeiten der Ampel aus A2. Verwenden Sie ausschließlich Timer-Module</td><td>TIM6 配置为 1 ms tick（PSC=1599, ARR=9），所有阶段计时均通过递减 <code dir="auto">g_state_timeout_ms</code> 实现</td><td>✅</td></tr><tr><td><strong>d.</strong> Ihr Programm enthält nun keine einzige Warteschleife („busy wait”) mehr</td><td><code dir="auto">main()</code> 仅执行 <code dir="auto">__WFI()</code>（睡眠等待中断，不是空循环）；其他 <code dir="auto">while(1)</code> 仅出现在 <code dir="auto">ISR_error()</code> / <code dir="auto">ISR_default()</code> 故障兜底中，正常路径不会进入</td><td>✅</td></tr><tr><td><strong>e.</strong> Code (.c und _it.c) in Moodle hochladen</td><td>提交动作，与代码无关</td><td>—</td></tr></tbody></table>
+<p><strong>Ziele 对应</strong>（页 16 上方）：</p>
+<ul>
+<li><strong>„Nutzen von Hardwaremodulen, CPU-Entlastung erkennen”</strong> → 体现在 <code dir="auto">__WFI()</code> 主循环：CPU 在 99 % 的时间里处于 sleep，仅 1 ms 一次唤醒处理几条减法。</li>
+<li><strong>„Unterschied Timer vs. CPU-Wartezeit”</strong> → A1/A2 用 <code dir="auto">delay()</code> 空转 vs. A3 用 TIM6 update event；时间精度由硬件保证，不被任务长度漂移。</li>
+<li><strong>„Wissen, wie man den Timer einstellt”</strong> → <code dir="auto">Timer_init()</code> 12 句话覆盖 RCC 时钟、PSC/ARR、EGR=UG 强制装载、SR 清零、DIER 使能 UIE、NVIC 使能、CR1 启动；本页后文逐句解释。</li>
+</ul>
+<div class="sl-heading-wrapper level-h2"><h2 id="构建与运行验证">构建与运行验证</h2><a class="sl-anchor-link" href="#构建与运行验证"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “构建与运行验证”</span></a></div>
+<blockquote>
+<p>验证日期：2026-05-04，主机 Windows 11，工具链 STM32CubeIDE 1.16.0 内置的 GNU Tools for STM32 12.3.rel1</p>
+</blockquote>
+<p><strong>Clean build 命令链</strong>：</p>
+<div class="expressive-code"><link rel="stylesheet" href="/knowledge-site/_astro/ec.v4551.css"><script type="module" src="/knowledge-site/_astro/ec.0vx5m.js"></script><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="powershell"><code><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">$gcc</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#ECC48D;--1:#984E4D">D:\STM32CubeIDE_1.16.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\bin</span><span style="--0:#D9F5DD;--1:#111111">"</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">$mk</span><span style="--0:#D6DEEB;--1:#403F53">  </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#ECC48D;--1:#984E4D">D:\STM32CubeIDE_1.16.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.make.win32_2.1.300.202402091052\tools\bin</span><span style="--0:#D9F5DD;--1:#111111">"</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">$env:PATH</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#D9F5DD;--1:#111111">"</span><span style="--0:#82AAFF;--1:#3B61B0">$mk</span><span style="--0:#ECC48D;--1:#984E4D">;</span><span style="--0:#82AAFF;--1:#3B61B0">$gcc</span><span style="--0:#ECC48D;--1:#984E4D">;</span><span style="--0:#82AAFF;--1:#3B61B0">$env:PATH</span><span style="--0:#D9F5DD;--1:#111111">"</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">cd A3_Timer\Debug</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">make </span><span style="--0:#C792EA;--1:#8844AE">clean</span><span style="--0:#D6DEEB;--1:#403F53">; make all</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="$gcc = &#x22;D:\STM32CubeIDE_1.16.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.win32_1.0.200.202406191623\tools\bin&#x22;$mk  = &#x22;D:\STM32CubeIDE_1.16.0\STM32CubeIDE\plugins\com.st.stm32cube.ide.mcu.externaltools.make.win32_2.1.300.202402091052\tools\bin&#x22;$env:PATH = &#x22;$mk;$gcc;$env:PATH&#x22;cd A3_Timer\Debugmake clean; make all"><div></div></button></div></figure></div>
+<p><strong>结果</strong>：</p>
+<ul>
+<li>✅ 全部目标文件编译通过：<code dir="auto">startup_stm32g431kbtx.o</code>、<code dir="auto">syscalls.o</code>、<code dir="auto">sysmem.o</code>、<code dir="auto">A3_Timer.o</code>、<code dir="auto">A3_Timer_it.o</code></li>
+<li>✅ 链接生成 <code dir="auto">A3_Timer.elf</code></li>
+<li>✅ <code dir="auto">arm-none-eabi-size</code> 输出：<code dir="auto">text=2084  data=0  bss=1576  dec=3660</code></li>
+<li>✅ 0 warning（编译器开了 <code dir="auto">-Wall -fstack-usage -fcyclomatic-complexity</code>）</li>
+<li>✅ 0 error</li>
+</ul>
+<p><strong>Footprint 评估</strong>：STM32G431KBT6U 有 128 KB Flash 和 32 KB RAM，本工程占用：</p>
+<ul>
+<li>Flash：约 2 KB（&#x3C; 1.6 %）</li>
+<li>RAM：约 1.6 KB（&#x3C; 5 %）</li>
+</ul>
+<p>完全合理，没有任何超界风险。</p>
+<p><strong>未做硬件 In-the-Loop 验证</strong>：本主机没有连接 STefi Light 板，因此真实交通灯灯光时序未现场观测。代码层面可保证：</p>
+<ul>
+<li>1 ms tick 精度（16 MHz HSI / 1600 / 10 = 1 kHz 数学上严格成立）</li>
+<li>各阶段时长由 <code dir="auto">WAIT_*_MS</code> 宏 1:1 装载到 <code dir="auto">g_state_timeout_ms</code>，没有 ±1 tick 偏差以外的累积漂移</li>
+</ul>
+<p>如果后续上板验证发现红灯/黄灯持续时间偏短或偏长，应优先排查：MCU 时钟是否仍是 16 MHz HSI（默认）、有没有被改成 PLL 而 PSC 没同步。</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="vorbereitungsfragen-答案要点">Vorbereitungsfragen 答案要点</h2><a class="sl-anchor-link" href="#vorbereitungsfragen-答案要点"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Vorbereitungsfragen 答案要点”</span></a></div>
+<blockquote>
+<p>来源：Anleitung §4.3 Vorbereitung 列表 a-e。这一节给老师抽查时的口头回答模板。</p>
+</blockquote>
+<p><strong>a. Skriptkapitel zum Timer</strong>：参见 <a href="/knowledge-site/notes/concepts/systick-und-timer/">SysTick 与定时器</a>，重点是 PSC/ARR 的级联分频公式 <code dir="auto">f_update = f_clk / (PSC+1) / (ARR+1)</code>。</p>
+<p><strong>b. ST 文档 TIM6 关键寄存器</strong>：</p>
+<ul>
+<li><code dir="auto">RCC->APB1ENR1</code> — TIM6EN bit，给 TIM6 上时钟</li>
+<li><code dir="auto">TIM6->CR1</code> — CEN（启动计数）、URS、UDIS 等控制位</li>
+<li><code dir="auto">TIM6->PSC</code> — 16-bit 预分频</li>
+<li><code dir="auto">TIM6->ARR</code> — 16-bit 自动重装值</li>
+<li><code dir="auto">TIM6->CNT</code> — 当前计数</li>
+<li><code dir="auto">TIM6->EGR</code> — UG bit，强制立即装载 PSC/ARR</li>
+<li><code dir="auto">TIM6->SR</code> — UIF（update interrupt flag）</li>
+<li><code dir="auto">TIM6->DIER</code> — UIE（update interrupt enable）</li>
+</ul>
+<p><strong>c. Prescaler 计算</strong>：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#d6deeb;--1:#403f53">f_clk = 16 MHz (HSI 默认，未启用 PLL)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#d6deeb;--1:#403f53">目标 tick = 1 ms = 1 kHz</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="f_clk = 16 MHz (HSI 默认，未启用 PLL)目标 tick = 1 ms = 1 kHz"><div></div></button></div></figure></div>
+<p>选 <code dir="auto">PSC = 1599</code>（除以 1600 → 10 kHz），<code dir="auto">ARR = 9</code>（除以 10 → 1 kHz）。<br>
+启动顺序：先配 RCC、PSC、ARR、EGR=UG、SR=0、DIER=UIE，再 <code dir="auto">NVIC_EnableIRQ</code>，最后 <code dir="auto">CR1 |= CEN</code>。</p>
+<p><strong>d. Timer 相对 delay() 的优势</strong>：</p>
+<ol>
+<li>CPU 不被占用，可以 <code dir="auto">__WFI()</code> 进入 sleep，能耗显著降低</li>
+<li>时间精度由硬件保证，不受其他代码执行长度影响</li>
+<li>多任务并行：行人阶段同一个 timer 同时维护「总剩余 15 s」和「蓝灯每 500 ms 翻转」两套节奏</li>
+<li>中断响应时延确定，可与其他高优先级中断协同</li>
+</ol>
+<p><strong>e. Flussdiagramm</strong>：本页「代码总体流程」一节用 4 条事件链（上电、按钮、timer tick、行人阶段）覆盖，可在抽查时直接照念。完整可视化版本见 <code dir="auto">A3_Flussdiagramm.jpg</code>（与本笔记同目录），含 4 个集群：</p>
+<ul>
+<li><strong>main()</strong> — 初始化序列 + <code dir="auto">__WFI()</code> 主循环</li>
+<li><strong>ISR_S0()</strong> — EXTI0 下降沿 → 状态机启动判断</li>
+<li><strong>ISR_Timer() + Traffic_timer_tick()</strong> — TIM6 update → UIF 清除 → 计时递减 → 行人阶段双时间分支</li>
+<li><strong>Traffic_advance()</strong> 状态机 — 7 个阶段的转移关系，含每阶段的 LED 与时长</li>
+</ul>
+<p>虚线箭头表示中断触发关系（<code dir="auto">__WFI</code> 被 EXTI0 / TIM6 唤醒），点线箭头表示对 <code dir="auto">g_traffic_state</code> 的写入。<br>
+源文件 <code dir="auto">A3_Flussdiagramm.dot</code> 也保留在该目录，可重新渲染：</p>
+<div class="expressive-code"><figure class="frame is-terminal not-content"><figcaption class="header"><span class="title"></span><span class="sr-only">Terminal window</span></figcaption><pre data-language="powershell"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">dot </span><span style="--0:#C792EA;--1:#8844AE">-</span><span style="--0:#D6DEEB;--1:#403F53">Tjpg </span><span style="--0:#C792EA;--1:#8844AE">-</span><span style="--0:#D6DEEB;--1:#403F53">Gdpi</span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#F78C6C;--1:#AA0982">180</span><span style="--0:#D6DEEB;--1:#403F53"> A3_Flussdiagramm.dot </span><span style="--0:#C792EA;--1:#8844AE">-</span><span style="--0:#D6DEEB;--1:#403F53">o A3_Flussdiagramm.jpg</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="dot -Tjpg -Gdpi=180 A3_Flussdiagramm.dot -o A3_Flussdiagramm.jpg"><div></div></button></div></figure></div>
+<p>A3 Flussdiagramm</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="任务目标">任务目标</h2><a class="sl-anchor-link" href="#任务目标"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “任务目标”</span></a></div>
+<p>A3 的目标不是再改“按钮怎么触发”，这一点在 A2 已经完成了。<br>
+A3 真正新增的是：</p>
+<ul>
+<li><strong>把 A1/A2 里的 busy-wait 延时改成硬件 timer 驱动</strong></li>
+<li><strong>让 CPU 不再靠空转循环等待时间过去</strong></li>
+<li><strong>让交通灯流程按“状态 + 剩余时间”推进</strong></li>
+</ul>
+<p>一句话概括：</p>
+<p><strong>A2 是“按钮触发方式升级”，A3 是“等待方式升级”。</strong></p>
+<div class="sl-heading-wrapper level-h2"><h2 id="前置任务已知内容">前置任务已知内容</h2><a class="sl-anchor-link" href="#前置任务已知内容"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “前置任务已知内容”</span></a></div>
+<p>默认你已经理解 A1、A2 中这些内容，因此这里不再重复长篇展开：</p>
+<ul>
+<li>LED 是 active-low</li>
+<li>PB0 按钮使用 pull-up，按下时为 Low</li>
+<li>交通灯业务时序本身是什么</li>
+<li>EXTI0 / NVIC / pending bit 的基本作用</li>
+<li>为什么 A2 中 ISR 要尽量短</li>
+</ul>
+<p>所以 A3 只重点解释<strong>本题新增的东西</strong>：</p>
+<ul>
+<li>timer 外设怎么变成“1 ms 节拍器”</li>
+<li>为什么要引入状态变量</li>
+<li>为什么主循环几乎空了</li>
+<li>为什么现在是 <code dir="auto">按钮 ISR + timer ISR + 状态机</code> 三者协同</li>
+</ul>
+<div class="sl-heading-wrapper level-h2"><h2 id="本任务新增的思路">本任务新增的思路</h2><a class="sl-anchor-link" href="#本任务新增的思路"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “本任务新增的思路”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="1-时间不再靠-cpu-空转而靠-tim6-提供节拍">1. 时间不再靠 CPU 空转，而靠 TIM6 提供节拍</h3><a class="sl-anchor-link" href="#1-时间不再靠-cpu-空转而靠-tim6-提供节拍"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “1. 时间不再靠 CPU 空转，而靠 TIM6 提供节拍”</span></a></div>
+<p>A1/A2 里的 <code dir="auto">delay()</code> 本质是：</p>
+<ul>
+<li>CPU 一直执行空循环</li>
+<li>什么都不做</li>
+<li>只是为了“把时间熬过去”</li>
+</ul>
+<p>A3 改成：</p>
+<ul>
+<li>TIM6 每隔 1 ms 产生一次 update event</li>
+<li>CPU 进入休眠</li>
+<li>只有 timer 中断到来时才醒一下，处理“还剩多少时间、要不要切换下一相位”</li>
+</ul>
+<p>这就是 A3 里“Professionelles Warten”的核心含义：<br>
+<strong>等待这件事交给硬件 timer，而不是交给 CPU 空转。</strong></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="2-a3-不再是顺着一段大流程跑到底">2. A3 不再是“顺着一段大流程跑到底”</h3><a class="sl-anchor-link" href="#2-a3-不再是顺着一段大流程跑到底"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “2. A3 不再是“顺着一段大流程跑到底””</span></a></div>
+<p>A2 的主循环可以写成：</p>
+<ul>
+<li>等按钮</li>
+<li>绿灯等 10 秒</li>
+<li>黄灯 1 秒</li>
+<li>红灯 1 秒</li>
+<li>蓝灯闪 15 秒</li>
+<li>…</li>
+</ul>
+<p>这种写法的问题是：<br>
+它依赖“我现在就把这一整段流程连续执行完”。</p>
+<p>但 A3 用 timer 后，每次中断只过了 <strong>1 ms</strong>。<br>
+因此程序不能再“从头跑完整段流程”，而必须回答两个问题：</p>
+<ol>
+<li>我现在处于哪个阶段？</li>
+<li>这个阶段还剩多少时间？</li>
+</ol>
+<p>所以 A3 引入了：</p>
+<ul>
+<li><code dir="auto">traffic_state_t</code></li>
+<li><code dir="auto">g_traffic_state</code></li>
+<li><code dir="auto">g_state_timeout_ms</code></li>
+</ul>
+<p>这说明 A3 已经从“顺序脚本式流程”走向“状态机式流程”。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="3-a3-的分工不再是-a2-那种isr-触发main-执行业务">3. A3 的分工不再是 A2 那种“ISR 触发、main 执行业务”</h3><a class="sl-anchor-link" href="#3-a3-的分工不再是-a2-那种isr-触发main-执行业务"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “3. A3 的分工不再是 A2 那种“ISR 触发、main 执行业务””</span></a></div>
+<p>A3 当前代码的真实分工是：</p>
+<ul>
+<li><code dir="auto">ISR_S0()</code>：只负责<strong>启动</strong>序列</li>
+<li><code dir="auto">ISR_Timer()</code>：负责<strong>按毫秒推进</strong>序列</li>
+<li><code dir="auto">main()</code>：负责<strong>睡眠等待中断</strong></li>
+</ul>
+<p>这就是本题最容易卡住的地方。<br>
+如果你还按 A2 的思维去看，会误以为“主循环会处理交通灯流程”，但 A3 已经不是这样了。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="4-蓝灯闪烁不能只靠一个总时间变量">4. 蓝灯闪烁不能只靠一个总时间变量</h3><a class="sl-anchor-link" href="#4-蓝灯闪烁不能只靠一个总时间变量"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “4. 蓝灯闪烁不能只靠一个总时间变量”</span></a></div>
+<p>行人阶段有两个同时存在的时间逻辑：</p>
+<ol>
+<li>整个行人阶段总共持续 15 秒</li>
+<li>蓝灯每 500 ms 翻转一次，形成 1 Hz 闪烁</li>
+</ol>
+<p>所以 A3 不是只多了一个“总剩余时间”，而是多了两层时间：</p>
+<ul>
+<li><code dir="auto">g_state_timeout_ms</code>
+当前阶段总剩余时间</li>
+<li><code dir="auto">g_blue_toggle_ms</code>
+距离下一次蓝灯翻转还剩多少毫秒</li>
+</ul>
+<p>这就是为什么 A3 比 A2 多出一组专门管理“阶段内局部节奏”的变量。</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="本任务新增的语法--寄存器--机制">本任务新增的语法 / 寄存器 / 机制</h2><a class="sl-anchor-link" href="#本任务新增的语法--寄存器--机制"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “本任务新增的语法 / 寄存器 / 机制”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="traffic_state_t-是什么为什么要先定义它"><code dir="auto">traffic_state_t</code> 是什么，为什么要先定义它</h3><a class="sl-anchor-link" href="#traffic_state_t-是什么为什么要先定义它"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “traffic_state_t 是什么，为什么要先定义它”</span></a></div>
+<p>A3 先定义了一个枚举类型：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">typedef</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">enum</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">{</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">TRAFFIC_STATE_IDLE_GREEN </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">,</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">TRAFFIC_STATE_WAIT_GREEN,</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">TRAFFIC_STATE_WAIT_YELLOW,</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">TRAFFIC_STATE_WAIT_RED,</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">TRAFFIC_STATE_PEDESTRIAN,</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">TRAFFIC_STATE_WAIT_RED_AFTER_BLUE,</span></div></div><div class="ec-line"><div class="code"><span class="indent"><span style="--0:#D6DEEB;--1:#403F53">    </span></span><span style="--0:#D6DEEB;--1:#403F53">TRAFFIC_STATE_WAIT_RED_YELLOW</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">} </span><span style="--0:#C5E478;--1:#3B61B0">traffic_state_t</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="typedef enum{    TRAFFIC_STATE_IDLE_GREEN = 0,    TRAFFIC_STATE_WAIT_GREEN,    TRAFFIC_STATE_WAIT_YELLOW,    TRAFFIC_STATE_WAIT_RED,    TRAFFIC_STATE_PEDESTRIAN,    TRAFFIC_STATE_WAIT_RED_AFTER_BLUE,    TRAFFIC_STATE_WAIT_RED_YELLOW} traffic_state_t;"><div></div></button></div></figure></div>
+<p>这不是一个变量，而是一个<strong>类型定义</strong>。<br>
+它的作用是：给“交通灯当前处于哪个阶段”提供一组有名字的常量。</p>
+<p>如果不用它，只写整数：</p>
+<ul>
+<li><code dir="auto">0</code></li>
+<li><code dir="auto">1</code></li>
+<li><code dir="auto">2</code></li>
+<li><code dir="auto">3</code></li>
+</ul>
+<p>老师一问“2 是什么意思”，你就很难讲。<br>
+但现在你可以直接说：</p>
+<ul>
+<li><code dir="auto">TRAFFIC_STATE_WAIT_RED</code> 就是“当前处于红灯 1 秒阶段”</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="a3-新变量总表">A3 新变量总表</h3><a class="sl-anchor-link" href="#a3-新变量总表"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “A3 新变量总表”</span></a></div>
+<p>这 4 个变量是 A3 最核心的新内容，必须讲清楚它们的身份。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>变量</th><th>定义位置</th><th><code dir="auto">extern</code> 声明位置</th><th>谁写它</th><th>谁读它</th><th>语义</th></tr></thead><tbody><tr><td><code dir="auto">g_traffic_state</code></td><td><code dir="auto">A3_Timer.c</code> 的 global variables 区</td><td>无</td><td><code dir="auto">Traffic_state_enter()</code></td><td><code dir="auto">ISR_S0()</code>、<code dir="auto">Traffic_advance()</code>、<code dir="auto">Traffic_timer_tick()</code></td><td>当前交通灯所处阶段</td></tr><tr><td><code dir="auto">g_state_timeout_ms</code></td><td><code dir="auto">A3_Timer.c</code> 的 global variables 区</td><td>无</td><td><code dir="auto">Traffic_state_enter()</code> 初始化、<code dir="auto">Traffic_timer_tick()</code> 递减</td><td><code dir="auto">Traffic_timer_tick()</code></td><td>当前阶段还剩多少毫秒</td></tr><tr><td><code dir="auto">g_blue_toggle_ms</code></td><td><code dir="auto">A3_Timer.c</code> 的 global variables 区</td><td>无</td><td><code dir="auto">Traffic_state_enter()</code> 初始化、<code dir="auto">Traffic_timer_tick()</code> 递减并重装</td><td><code dir="auto">Traffic_timer_tick()</code></td><td>距离蓝灯下一次翻转还剩多少毫秒</td></tr><tr><td><code dir="auto">g_blue_led_on</code></td><td><code dir="auto">A3_Timer.c</code> 的 global variables 区</td><td>无</td><td><code dir="auto">Traffic_state_enter()</code>、<code dir="auto">Traffic_timer_tick()</code></td><td><code dir="auto">Traffic_timer_tick()</code></td><td>蓝灯当前逻辑上是否处于“亮”状态</td></tr></tbody></table>
+<p>这里有一个和 A2 非常不同的点：</p>
+<ul>
+<li>A2 的关键共享变量 <code dir="auto">g_button_pressed</code> 跨文件使用，所以需要 <code dir="auto">extern</code></li>
+<li>A3 的状态变量全部定义和使用都在 <code dir="auto">A3_Timer.c</code> 里</li>
+</ul>
+<p>所以 A3 的重点不再是“跨文件共享 flag”，而是“单文件内部维护状态机”。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="为什么这些变量都写成-volatile">为什么这些变量都写成 <code dir="auto">volatile</code></h3><a class="sl-anchor-link" href="#为什么这些变量都写成-volatile"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “为什么这些变量都写成 volatile”</span></a></div>
+<p>例如：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">volatile</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C5E478;--1:#3B61B0">traffic_state_t</span><span style="--0:#D6DEEB;--1:#403F53"> g_traffic_state </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> TRAFFIC_STATE_IDLE_GREEN;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">volatile</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">uint32_t</span><span style="--0:#D6DEEB;--1:#403F53"> g_state_timeout_ms </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="volatile traffic_state_t g_traffic_state = TRAFFIC_STATE_IDLE_GREEN;volatile uint32_t g_state_timeout_ms = 0;"><div></div></button></div></figure></div>
+<p>原因和 A2 里的 <code dir="auto">g_button_pressed</code> 一样：<br>
+这些变量会在 ISR 中被修改。</p>
+<p>如果没有 <code dir="auto">volatile</code>，编译器可能认为：</p>
+<ul>
+<li>“这个值在当前上下文里看起来没被改”</li>
+<li>然后把它缓存起来</li>
+</ul>
+<p>但 timer ISR 会在你“看不见的时刻”突然把它改掉。<br>
+所以 <code dir="auto">volatile</code> 的含义是：</p>
+<p><strong>“这个变量的值可能被中断异步改变，每次都要重新读真实内存。”</strong></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="tim6-为什么会在-a3-出现">TIM6 为什么会在 A3 出现</h3><a class="sl-anchor-link" href="#tim6-为什么会在-a3-出现"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “TIM6 为什么会在 A3 出现”</span></a></div>
+<p>TIM6 是 STM32 的通用定时器之一。<br>
+在 A3 里，它被拿来做最简单但很关键的一件事：</p>
+<ul>
+<li><strong>每 1 ms 触发一次 update interrupt</strong></li>
+</ul>
+<p>这样程序就有了统一时间基准。<br>
+之后所有“等 10 秒”“等 1 秒”“500 ms 翻转一次”都变成：</p>
+<ul>
+<li>“计数多少个 1 ms tick”</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="timer_init-逐句解释"><code dir="auto">Timer_init()</code> 逐句解释</h3><a class="sl-anchor-link" href="#timer_init-逐句解释"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Timer_init() 逐句解释”</span></a></div>
+<p>这是 A3 最应该背下来理解的一段初始化代码：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">RCC</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">APB1ENR1 </span><span style="--0:#C792EA;--1:#8844AE">|=</span><span style="--0:#D6DEEB;--1:#403F53"> RCC_APB1ENR1_TIM6EN;</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">CR1 </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">PSC </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> TIM6_PSC_VALUE;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">ARR </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> TIM6_ARR_VALUE;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">CNT </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">EGR </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> TIM_EGR_UG;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">SR </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">DIER </span><span style="--0:#C792EA;--1:#8844AE">|=</span><span style="--0:#D6DEEB;--1:#403F53"> TIM_DIER_UIE;</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">NVIC_SetPriority</span><span style="--0:#D6DEEB;--1:#403F53">(TIM6_DAC_IRQn, </span><span style="--0:#F78C6C;--1:#AA0982">2</span><span style="--0:#D6DEEB;--1:#403F53">);</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">NVIC_ClearPendingIRQ</span><span style="--0:#D6DEEB;--1:#403F53">(TIM6_DAC_IRQn);</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">NVIC_EnableIRQ</span><span style="--0:#D6DEEB;--1:#403F53">(TIM6_DAC_IRQn);</span></div></div><div class="ec-line"><div class="code">
+</div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">CR1 </span><span style="--0:#C792EA;--1:#8844AE">|=</span><span style="--0:#D6DEEB;--1:#403F53"> TIM_CR1_CEN;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="RCC->APB1ENR1 |= RCC_APB1ENR1_TIM6EN;TIM6->CR1 = 0;TIM6->PSC = TIM6_PSC_VALUE;TIM6->ARR = TIM6_ARR_VALUE;TIM6->CNT = 0;TIM6->EGR = TIM_EGR_UG;TIM6->SR = 0;TIM6->DIER |= TIM_DIER_UIE;NVIC_SetPriority(TIM6_DAC_IRQn, 2);NVIC_ClearPendingIRQ(TIM6_DAC_IRQn);NVIC_EnableIRQ(TIM6_DAC_IRQn);TIM6->CR1 |= TIM_CR1_CEN;"><div></div></button></div></figure></div>
+<p>下面按“它是什么 / 改了什么 / 硬件会怎样”来讲。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="1-rcc-apb1enr1--rcc_apb1enr1_tim6en">1. <code dir="auto">RCC->APB1ENR1 |= RCC_APB1ENR1_TIM6EN;</code></h4><a class="sl-anchor-link" href="#1-rcc-apb1enr1--rcc_apb1enr1_tim6en"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “1. RCC->APB1ENR1 |= RCC_APB1ENR1_TIM6EN;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">RCC->APB1ENR1</code></li>
+<li>寄存器作用：控制 APB1 总线上的外设时钟</li>
+<li>改动 bit：<code dir="auto">TIM6EN</code></li>
+<li>硬件效果：给 TIM6 打开时钟</li>
+</ul>
+<p>如果没有这句，后面对 <code dir="auto">TIM6->...</code> 的配置基本都不会真正生效。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="2-tim6-cr1--0">2. <code dir="auto">TIM6->CR1 = 0;</code></h4><a class="sl-anchor-link" href="#2-tim6-cr1--0"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “2. TIM6->CR1 = 0;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->CR1</code></li>
+<li>寄存器作用：定时器控制寄存器 1</li>
+<li>含义：先把控制状态清成一个已知初始值</li>
+</ul>
+<p>这样做的好处是：<br>
+后面再逐项配置时，不会受之前残留状态影响。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="3-tim6-psc--tim6_psc_value">3. <code dir="auto">TIM6->PSC = TIM6_PSC_VALUE;</code></h4><a class="sl-anchor-link" href="#3-tim6-psc--tim6_psc_value"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “3. TIM6->PSC = TIM6_PSC_VALUE;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->PSC</code></li>
+<li>作用：Prescaler，预分频器</li>
+<li>当前值：<code dir="auto">1599U</code></li>
+</ul>
+<p>怎么读这个值？</p>
+<ul>
+<li>MCU 时钟是 <code dir="auto">16 MHz</code></li>
+<li>预分频器不是“除以 1599”，而是“除以 <code dir="auto">1599 + 1</code>”</li>
+<li>所以 timer 计数时钟变成：</li>
+</ul>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#d6deeb;--1:#403f53">16,000,000 / 1600 = 10,000 Hz</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="16,000,000 / 1600 = 10,000 Hz"><div></div></button></div></figure></div>
+<p>也就是每秒 10000 tick。</p>
+<p>这里的 <code dir="auto">U</code> 后缀表示无符号整型字面量，避免和寄存器类型发生不必要的有符号混算。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="4-tim6-arr--tim6_arr_value">4. <code dir="auto">TIM6->ARR = TIM6_ARR_VALUE;</code></h4><a class="sl-anchor-link" href="#4-tim6-arr--tim6_arr_value"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “4. TIM6->ARR = TIM6_ARR_VALUE;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->ARR</code></li>
+<li>作用：Auto-Reload Register，自动重装值</li>
+<li>当前值：<code dir="auto">9U</code></li>
+</ul>
+<p>它也不是“计 9 次”，而是从 0 数到 9，总共 10 个计数值。<br>
+所以 update 周期是：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#d6deeb;--1:#403f53">10,000 Hz / (9 + 1) = 1,000 Hz</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="10,000 Hz / (9 + 1) = 1,000 Hz"><div></div></button></div></figure></div>
+<p>也就是 1 ms 一次 update event。</p>
+<p>这就是为什么代码上方写了：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#919F9F;--1:#5F636F">/* TIM6: 16 MHz / 1600 = 10 kHz, 10 kHz / 10 = 1 kHz => 1 ms tick */</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="/* TIM6: 16 MHz / 1600 = 10 kHz, 10 kHz / 10 = 1 kHz => 1 ms tick */"><div></div></button></div></figure></div>
+<div class="sl-heading-wrapper level-h4"><h4 id="5-tim6-cnt--0">5. <code dir="auto">TIM6->CNT = 0;</code></h4><a class="sl-anchor-link" href="#5-tim6-cnt--0"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “5. TIM6->CNT = 0;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->CNT</code></li>
+<li>作用：当前计数值</li>
+<li>含义：从 0 开始计数</li>
+</ul>
+<div class="sl-heading-wrapper level-h4"><h4 id="6-tim6-egr--tim_egr_ug">6. <code dir="auto">TIM6->EGR = TIM_EGR_UG;</code></h4><a class="sl-anchor-link" href="#6-tim6-egr--tim_egr_ug"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “6. TIM6->EGR = TIM_EGR_UG;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->EGR</code></li>
+<li>作用：Event Generation Register</li>
+<li><code dir="auto">UG</code> 的意思：Update Generation</li>
+</ul>
+<p>这句最容易被忽略，但它很重要。<br>
+它的作用是：</p>
+<ul>
+<li>让刚才写入的 <code dir="auto">PSC</code> / <code dir="auto">ARR</code> 立即生效</li>
+</ul>
+<p>否则有些定时器配置可能要等到下一次 update 才真正装载。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="7-tim6-sr--0">7. <code dir="auto">TIM6->SR = 0;</code></h4><a class="sl-anchor-link" href="#7-tim6-sr--0"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “7. TIM6->SR = 0;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->SR</code></li>
+<li>作用：Status Register</li>
+<li>含义：先把可能已有的状态位清掉</li>
+</ul>
+<p>这样可以避免“刚启用中断就因为旧标志位立刻进一次 ISR”。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="8-tim6-dier--tim_dier_uie">8. <code dir="auto">TIM6->DIER |= TIM_DIER_UIE;</code></h4><a class="sl-anchor-link" href="#8-tim6-dier--tim_dier_uie"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “8. TIM6->DIER |= TIM_DIER_UIE;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->DIER</code></li>
+<li>作用：DMA/Interrupt Enable Register</li>
+<li>改动 bit：<code dir="auto">UIE</code> = Update Interrupt Enable</li>
+</ul>
+<p>含义是：</p>
+<ul>
+<li>允许“update event”产生中断请求</li>
+</ul>
+<p>如果少了这句，即使计数到了 ARR，CPU 也不会因为 update event 进入 <code dir="auto">ISR_Timer()</code>。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="9-nvic_setprioritytim6_dac_irqn-2">9. <code dir="auto">NVIC_SetPriority(TIM6_DAC_IRQn, 2);</code></h4><a class="sl-anchor-link" href="#9-nvic_setprioritytim6_dac_irqn-2"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “9. NVIC_SetPriority(TIM6_DAC_IRQn, 2);”</span></a></div>
+<p>这是把 TIM6 中断优先级设成 2。<br>
+当前代码里 EXTI0 是优先级 1，TIM6 是优先级 2，表示：</p>
+<ul>
+<li>按钮触发中断优先级更高一点</li>
+<li>timer tick 稍低一点</li>
+</ul>
+<div class="sl-heading-wrapper level-h4"><h4 id="10-nvic_clearpendingirqtim6_dac_irqn">10. <code dir="auto">NVIC_ClearPendingIRQ(TIM6_DAC_IRQn);</code></h4><a class="sl-anchor-link" href="#10-nvic_clearpendingirqtim6_dac_irqn"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “10. NVIC_ClearPendingIRQ(TIM6_DAC_IRQn);”</span></a></div>
+<p>清掉 TIM6 在 NVIC 层面的 pending 状态。</p>
+<div class="sl-heading-wrapper level-h4"><h4 id="11-nvic_enableirqtim6_dac_irqn">11. <code dir="auto">NVIC_EnableIRQ(TIM6_DAC_IRQn);</code></h4><a class="sl-anchor-link" href="#11-nvic_enableirqtim6_dac_irqn"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “11. NVIC_EnableIRQ(TIM6_DAC_IRQn);”</span></a></div>
+<p>真正允许 CPU 响应 TIM6 的中断请求。</p>
+<p>注意这里和 A2 一样，还是两层：</p>
+<ul>
+<li>外设层：<code dir="auto">TIM6->DIER</code> 允许发请求</li>
+<li>NVIC 层：<code dir="auto">NVIC_EnableIRQ(...)</code> 允许 CPU 接收请求</li>
+</ul>
+<div class="sl-heading-wrapper level-h4"><h4 id="12-tim6-cr1--tim_cr1_cen">12. <code dir="auto">TIM6->CR1 |= TIM_CR1_CEN;</code></h4><a class="sl-anchor-link" href="#12-tim6-cr1--tim_cr1_cen"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “12. TIM6->CR1 |= TIM_CR1_CEN;”</span></a></div>
+<ul>
+<li>操作寄存器：<code dir="auto">TIM6->CR1</code></li>
+<li>改动 bit：<code dir="auto">CEN</code> = Counter Enable</li>
+<li>硬件效果：启动 TIM6 计数器</li>
+</ul>
+<p>只有到这句之后，TIM6 才真正开始跑。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="isr_timer-为什么先清-uif-再做逻辑"><code dir="auto">ISR_Timer()</code> 为什么先清 UIF 再做逻辑</h3><a class="sl-anchor-link" href="#isr_timer-为什么先清-uif-再做逻辑"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “ISR_Timer() 为什么先清 UIF 再做逻辑”</span></a></div>
+<p>代码是：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">if</span><span style="--0:#D6DEEB;--1:#403F53"> ((TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">SR </span><span style="--0:#7FDBCA;--1:#096E72">&#x26;</span><span style="--0:#D6DEEB;--1:#403F53"> TIM_SR_UIF) </span><span style="--0:#C792EA;--1:#8844AE">!=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--1:#AA0982"><span style="--0:#F78C6C">0</span><span style="--0:#FFEB95">U</span></span><span style="--0:#D6DEEB;--1:#403F53">)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">{</span></div></div><div class="ec-line"><div class="code"><span class="indent">    </span><span style="--0:#C5E478;--1:#3B61B0">TIM6</span><span style="--0:#D6DEEB;--1:#403F53">-></span><span style="--0:#C5E478;--1:#3B61B0">SR</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">&#x26;=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#7FDBCA;--1:#096E72">~</span><span style="--0:#D6DEEB;--1:#403F53">TIM_SR_UIF;</span></div></div><div class="ec-line"><div class="code"><span class="indent">    </span><span style="--0:#82AAFF;--1:#3B61B0">Traffic_timer_tick()</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="if ((TIM6->SR &#x26; TIM_SR_UIF) != 0U){    TIM6->SR &#x26;= ~TIM_SR_UIF;    Traffic_timer_tick();}"><div></div></button></div></figure></div>
+<p>这段代码包含两层意思。</p>
+<p>第一层：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">SR </span><span style="--0:#7FDBCA;--1:#096E72">&#x26;</span><span style="--0:#D6DEEB;--1:#403F53"> TIM_SR_UIF</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="TIM6->SR &#x26; TIM_SR_UIF"><div></div></button></div></figure></div>
+<p>这是按位与。<br>
+目的是只看 <code dir="auto">SR</code> 里的 <code dir="auto">UIF</code> 那一位：</p>
+<ul>
+<li><code dir="auto">UIF = 1</code> 表示 update event 发生过</li>
+<li><code dir="auto">UIF = 0</code> 表示这次不是 update 触发</li>
+</ul>
+<p>第二层：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">SR </span><span style="--0:#C792EA;--1:#8844AE">&#x26;=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#7FDBCA;--1:#096E72">~</span><span style="--0:#D6DEEB;--1:#403F53">TIM_SR_UIF;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="TIM6->SR &#x26;= ~TIM_SR_UIF;"><div></div></button></div></figure></div>
+<p>这是“把 UIF 那一位清掉，其他位尽量保持不变”。<br>
+如果不清，下次还会以为“旧的 update 事件还没处理完”。</p>
+<p>你可以直接把这一句翻译成口语：</p>
+<p><strong>“我已经响应了这一次 timer 更新中断，所以把 update 标志清掉。”</strong></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="__wfi-是什么为什么-a3-主循环只剩它"><code dir="auto">__WFI()</code> 是什么，为什么 A3 主循环只剩它</h3><a class="sl-anchor-link" href="#__wfi-是什么为什么-a3-主循环只剩它"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “__WFI() 是什么，为什么 A3 主循环只剩它”</span></a></div>
+<p>主循环现在是：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">for</span><span style="--0:#D6DEEB;--1:#403F53"> (;;)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">{</span></div></div><div class="ec-line"><div class="code"><span class="indent">    </span><span style="--0:#82AAFF;--1:#3B61B0">__WFI()</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">}</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="for (;;){    __WFI();}"><div></div></button></div></figure></div>
+<p><code dir="auto">__WFI()</code> 是：</p>
+<ul>
+<li><code dir="auto">Wait For Interrupt</code></li>
+</ul>
+<p>含义是：</p>
+<ul>
+<li>CPU 进入等待状态</li>
+<li>直到有中断到来才继续执行</li>
+</ul>
+<p>为什么 A3 可以这样写？</p>
+<p>因为 A3 的业务推进已经不靠主循环了，而靠：</p>
+<ul>
+<li><code dir="auto">ISR_S0()</code></li>
+<li><code dir="auto">ISR_Timer()</code></li>
+</ul>
+<p>所以主循环现在只需要做一件事：</p>
+<ul>
+<li>“没事就睡觉，有中断再醒”</li>
+</ul>
+<p>这正是 A3 相比 A2 的结构升级。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="traffic_state_enter-为什么是-a3-的核心函数"><code dir="auto">Traffic_state_enter()</code> 为什么是 A3 的核心函数</h3><a class="sl-anchor-link" href="#traffic_state_enter-为什么是-a3-的核心函数"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Traffic_state_enter() 为什么是 A3 的核心函数”</span></a></div>
+<p>这个函数不是简单的“切状态”，而是做了三件事：</p>
+<ol>
+<li>记录新状态</li>
+<li>配置该状态对应的 LED 显示</li>
+<li>装载该状态对应的时间参数</li>
+</ol>
+<p>比如进入行人阶段时：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_blue_led_on </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">1</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_blue_toggle_ms </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> BLUE_TOGGLE_MS;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">LEDs_set</span><span style="--0:#D6DEEB;--1:#403F53">(MASK_LED_RED </span><span style="--0:#7FDBCA;--1:#096E72">|</span><span style="--0:#D6DEEB;--1:#403F53"> MASK_LED_BLUE);</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_state_timeout_ms </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> WAIT_PEDESTRIAN_MS;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="g_blue_led_on = 1;g_blue_toggle_ms = BLUE_TOGGLE_MS;LEDs_set(MASK_LED_RED | MASK_LED_BLUE);g_state_timeout_ms = WAIT_PEDESTRIAN_MS;"><div></div></button></div></figure></div>
+<p>逐句解释：</p>
+<ul>
+<li><code dir="auto">g_blue_led_on = 1;</code>
+蓝灯逻辑状态先设成“亮”</li>
+<li><code dir="auto">g_blue_toggle_ms = BLUE_TOGGLE_MS;</code>
+500 ms 后再翻转一次</li>
+<li><code dir="auto">LEDs_set(MASK_LED_RED | MASK_LED_BLUE);</code>
+当前显示红灯 + 蓝灯</li>
+<li><code dir="auto">g_state_timeout_ms = WAIT_PEDESTRIAN_MS;</code>
+整个阶段总共持续 15000 ms</li>
+</ul>
+<p>所以它不是“只切一个状态变量”，而是在做“进入新阶段时的一整套装载动作”。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="traffic_timer_tick-是真正的时间推进器"><code dir="auto">Traffic_timer_tick()</code> 是真正的“时间推进器”</h3><a class="sl-anchor-link" href="#traffic_timer_tick-是真正的时间推进器"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “Traffic_timer_tick() 是真正的“时间推进器””</span></a></div>
+<p>这段函数负责回答：</p>
+<ul>
+<li>当前是不是还在某个阶段里？</li>
+<li>当前阶段剩余时间是否减 1 ms？</li>
+<li>蓝灯是不是到翻转时刻了？</li>
+<li>当前阶段是不是结束了？</li>
+</ul>
+<p>如果你只能记住 A3 一个核心函数，那就是它。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="g_blue_led_on--1u-这句怎么读"><code dir="auto">g_blue_led_on ^= 1U;</code> 这句怎么读</h3><a class="sl-anchor-link" href="#g_blue_led_on--1u-这句怎么读"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “g_blue_led_on ^= 1U; 这句怎么读”</span></a></div>
+<p>这是按位异或赋值：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_blue_led_on </span><span style="--0:#C792EA;--1:#8844AE">^=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--1:#AA0982"><span style="--0:#F78C6C">1</span><span style="--0:#FFEB95">U</span></span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="g_blue_led_on ^= 1U;"><div></div></button></div></figure></div>
+<p>如果原来是：</p>
+<ul>
+<li><code dir="auto">0</code></li>
+</ul>
+<p>那么和 <code dir="auto">1</code> 异或后变成：</p>
+<ul>
+<li><code dir="auto">1</code></li>
+</ul>
+<p>如果原来是：</p>
+<ul>
+<li><code dir="auto">1</code></li>
+</ul>
+<p>那么和 <code dir="auto">1</code> 异或后变成：</p>
+<ul>
+<li><code dir="auto">0</code></li>
+</ul>
+<p>所以这句的本质就是：</p>
+<p><strong>“把 0/1 状态翻转一次。”</strong></p>
+<p>它很适合拿来表示“开 / 关切换”。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="g_blue_led_on--mask_led_blue--0u-怎么读"><code dir="auto">(g_blue_led_on ? MASK_LED_BLUE : 0U)</code> 怎么读</h3><a class="sl-anchor-link" href="#g_blue_led_on--mask_led_blue--0u-怎么读"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “(g_blue_led_on ? MASK_LED_BLUE : 0U) 怎么读”</span></a></div>
+<p>这是三目运算符：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">(条件 </span><span style="--0:#C792EA;--1:#8844AE">?</span><span style="--0:#D6DEEB;--1:#403F53"> 条件成立时的值 </span><span style="--0:#C792EA;--1:#8844AE">:</span><span style="--0:#D6DEEB;--1:#403F53"> 条件不成立时的值)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="(条件 ? 条件成立时的值 : 条件不成立时的值)"><div></div></button></div></figure></div>
+<p>在这里：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">(g_blue_led_on </span><span style="--0:#C792EA;--1:#8844AE">?</span><span style="--0:#D6DEEB;--1:#403F53"> MASK_LED_BLUE </span><span style="--0:#C792EA;--1:#8844AE">:</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--1:#AA0982"><span style="--0:#F78C6C">0</span><span style="--0:#FFEB95">U</span></span><span style="--0:#D6DEEB;--1:#403F53">)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="(g_blue_led_on ? MASK_LED_BLUE : 0U)"><div></div></button></div></figure></div>
+<p>含义是：</p>
+<ul>
+<li>如果蓝灯逻辑状态是开，就返回 <code dir="auto">MASK_LED_BLUE</code></li>
+<li>如果蓝灯逻辑状态是关，就返回 <code dir="auto">0U</code></li>
+</ul>
+<p>然后它和：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">MASK_LED_RED </span><span style="--0:#7FDBCA;--1:#096E72">|</span><span style="--0:#D6DEEB;--1:#403F53"> (...)</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="MASK_LED_RED | (...)"><div></div></button></div></figure></div>
+<p>拼在一起，就形成：</p>
+<ul>
+<li>红灯始终亮</li>
+<li>蓝灯按条件决定要不要加入 mask</li>
+</ul>
+<div class="sl-heading-wrapper level-h2"><h2 id="代码总体流程">代码总体流程</h2><a class="sl-anchor-link" href="#代码总体流程"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “代码总体流程”</span></a></div>
+<p>这一节必须按“事件链”来理解，不能只按文件顺序看。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="1-上电后的初始化链">1. 上电后的初始化链</h3><a class="sl-anchor-link" href="#1-上电后的初始化链"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “1. 上电后的初始化链”</span></a></div>
+<p>程序启动后，<code dir="auto">main()</code> 顺序执行：</p>
+<ol>
+<li><code dir="auto">__disable_irq()</code></li>
+<li><code dir="auto">GPIO_init()</code></li>
+<li><code dir="auto">Timer_init()</code></li>
+<li><code dir="auto">Traffic_state_enter(TRAFFIC_STATE_IDLE_GREEN)</code></li>
+<li><code dir="auto">__enable_irq()</code></li>
+<li>进入 <code dir="auto">for(;;) { __WFI(); }</code></li>
+</ol>
+<p>这里的关键点是：</p>
+<ul>
+<li>GPIO 和 EXTI 保留了 A2 的按键触发能力</li>
+<li>新增 TIM6 作为 1 ms 时间基准</li>
+<li>初始状态明确设为 <code dir="auto">IDLE_GREEN</code></li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="2-按钮按下后的执行链">2. 按钮按下后的执行链</h3><a class="sl-anchor-link" href="#2-按钮按下后的执行链"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “2. 按钮按下后的执行链”</span></a></div>
+<p>按钮按下时，事件链是：</p>
+<ol>
+<li><code dir="auto">PB0</code> 从 High 变 Low</li>
+<li>EXTI0 检测到下降沿</li>
+<li>NVIC 允许 CPU 响应 <code dir="auto">EXTI0_IRQn</code></li>
+<li>CPU 进入 <code dir="auto">ISR_S0()</code></li>
+<li><code dir="auto">ISR_S0()</code> 发现当前在 <code dir="auto">TRAFFIC_STATE_IDLE_GREEN</code></li>
+<li>调用 <code dir="auto">Traffic_state_enter(TRAFFIC_STATE_WAIT_GREEN)</code></li>
+<li>当前状态变成“绿灯等待 10 秒阶段”</li>
+<li>中断返回</li>
+<li>CPU 回到 <code dir="auto">__WFI()</code> 等下一次中断</li>
+</ol>
+<p>注意：<br>
+<strong>按钮中断没有直接推进完整流程，它只是把状态机推到第一阶段。</strong></p>
+<div class="sl-heading-wrapper level-h3"><h3 id="3-timer-每-1-ms-推进一次的执行链">3. timer 每 1 ms 推进一次的执行链</h3><a class="sl-anchor-link" href="#3-timer-每-1-ms-推进一次的执行链"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “3. timer 每 1 ms 推进一次的执行链”</span></a></div>
+<p>只要 TIM6 在运行，就会不断发生 update event：</p>
+<ol>
+<li>TIM6 计数到 ARR</li>
+<li>产生 update event</li>
+<li><code dir="auto">UIF</code> 置位</li>
+<li>若 <code dir="auto">UIE</code> 已开，则向 NVIC 发出中断请求</li>
+<li>CPU 进入 <code dir="auto">ISR_Timer()</code></li>
+<li><code dir="auto">ISR_Timer()</code> 清 <code dir="auto">UIF</code></li>
+<li>调用 <code dir="auto">Traffic_timer_tick()</code></li>
+<li><code dir="auto">Traffic_timer_tick()</code> 递减当前时间，必要时调用 <code dir="auto">Traffic_advance()</code></li>
+<li><code dir="auto">Traffic_advance()</code> 决定进入下一阶段</li>
+<li><code dir="auto">Traffic_state_enter()</code> 装载下一阶段的 LED 和时间</li>
+</ol>
+<p>这条链才是 A3 的主体。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="4-行人阶段为什么更特殊">4. 行人阶段为什么更特殊</h3><a class="sl-anchor-link" href="#4-行人阶段为什么更特殊"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “4. 行人阶段为什么更特殊”</span></a></div>
+<p>行人阶段不只是“等 15 秒”，而是同时做两件事：</p>
+<ol>
+<li>15 秒总阶段倒计时</li>
+<li>每 500 ms 翻转一次蓝灯</li>
+</ol>
+<p>所以 <code dir="auto">Traffic_timer_tick()</code> 在 <code dir="auto">TRAFFIC_STATE_PEDESTRIAN</code> 这个分支里会：</p>
+<ol>
+<li>先减总时间 <code dir="auto">g_state_timeout_ms</code></li>
+<li>再减蓝灯翻转时间 <code dir="auto">g_blue_toggle_ms</code></li>
+<li>如果 <code dir="auto">g_blue_toggle_ms == 0</code>
+<ul>
+<li>翻转 <code dir="auto">g_blue_led_on</code></li>
+<li>重新装载 <code dir="auto">BLUE_TOGGLE_MS</code></li>
+<li>重写 LED mask</li>
+</ul>
+</li>
+<li>如果 <code dir="auto">g_state_timeout_ms == 0</code>
+<ul>
+<li>行人阶段结束，进入下一状态</li>
+</ul>
+</li>
+</ol>
+<div class="sl-heading-wrapper level-h3"><h3 id="5-为什么主循环几乎没有业务逻辑">5. 为什么主循环几乎没有业务逻辑</h3><a class="sl-anchor-link" href="#5-为什么主循环几乎没有业务逻辑"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “5. 为什么主循环几乎没有业务逻辑”</span></a></div>
+<p>因为 A3 的真实业务行为已经分散到：</p>
+<ul>
+<li>外部事件启动：<code dir="auto">ISR_S0()</code></li>
+<li>时间推进：<code dir="auto">ISR_Timer()</code></li>
+<li>状态切换：<code dir="auto">Traffic_advance()</code></li>
+<li>状态装载：<code dir="auto">Traffic_state_enter()</code></li>
+</ul>
+<p>所以 <code dir="auto">main()</code> 不再像 A2 那样“手里握着完整流程”，它只是系统壳子。</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="关键改动总结">关键改动总结</h2><a class="sl-anchor-link" href="#关键改动总结"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “关键改动总结”</span></a></div>
+<p>相对于 A2，A3 的关键变化可以概括成 6 点：</p>
+<ol>
+<li>删除了 A1/A2 那种基于 <code dir="auto">delay()</code> 的 busy-wait 时序推进思路</li>
+<li>新增 <code dir="auto">TIM6</code> 作为 1 ms 时间基准</li>
+<li>新增 <code dir="auto">traffic_state_t</code> 和 4 个状态变量，正式进入“状态机式实现”</li>
+<li>主循环从“等待 flag 并执行业务”变成“只做 <code dir="auto">__WFI()</code>”</li>
+<li>交通灯时序推进主体从 <code dir="auto">main()</code> 转移到 <code dir="auto">ISR_Timer()</code></li>
+<li>行人蓝灯闪烁通过“总阶段时间 + 局部翻转时间”双计时实现</li>
+</ol>
+<p>一句最重要的总结：</p>
+<p><strong>A2 是 interrupt 触发业务，A3 是 timer 驱动业务推进。</strong></p>
+<div class="sl-heading-wrapper level-h2"><h2 id="老师可能追问的问题与回答">老师可能追问的问题与回答</h2><a class="sl-anchor-link" href="#老师可能追问的问题与回答"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “老师可能追问的问题与回答”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="为什么-a3-还保留-isr_s0不直接全靠-timer">为什么 A3 还保留 <code dir="auto">ISR_S0()</code>，不直接全靠 timer？</h3><a class="sl-anchor-link" href="#为什么-a3-还保留-isr_s0不直接全靠-timer"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “为什么 A3 还保留 ISR_S0()，不直接全靠 timer？”</span></a></div>
+<p>因为 timer 只负责“时间流逝”，不能自己知道“用户什么时候按了按钮”。<br>
+所以：</p>
+<ul>
+<li><code dir="auto">ISR_S0()</code> 负责接收外部事件</li>
+<li><code dir="auto">ISR_Timer()</code> 负责处理时间事件</li>
+</ul>
+<p>两类事件分工不同，不能互相替代。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="为什么不用-a2-那样的主循环--flag--delay">为什么不用 A2 那样的主循环 + flag + <code dir="auto">delay()</code>？</h3><a class="sl-anchor-link" href="#为什么不用-a2-那样的主循环--flag--delay"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “为什么不用 A2 那样的主循环 + flag + delay()？”</span></a></div>
+<p>因为那样本质还是 CPU 空转等待。<br>
+A3 的目标就是把“等待”交给硬件 timer，让 CPU 休眠，只在中断到来时处理状态。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="为什么要用状态机不直接写一连串-if--delay">为什么要用状态机，不直接写一连串 <code dir="auto">if</code> / <code dir="auto">delay</code>？</h3><a class="sl-anchor-link" href="#为什么要用状态机不直接写一连串-if--delay"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “为什么要用状态机，不直接写一连串 if / delay？”</span></a></div>
+<p>因为 timer ISR 每次只过了 1 ms。<br>
+程序必须知道：</p>
+<ul>
+<li>自己现在在哪个阶段</li>
+<li>这个阶段还剩多久</li>
+</ul>
+<p>这正是状态机擅长解决的问题。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="为什么蓝灯要单独再加-g_blue_toggle_ms">为什么蓝灯要单独再加 <code dir="auto">g_blue_toggle_ms</code>？</h3><a class="sl-anchor-link" href="#为什么蓝灯要单独再加-g_blue_toggle_ms"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “为什么蓝灯要单独再加 g_blue_toggle_ms？”</span></a></div>
+<p>因为“行人阶段总共 15 秒”和“蓝灯每 500 ms 翻转”是两个不同节奏。<br>
+只用一个变量无法同时表达：</p>
+<ul>
+<li>阶段总剩余时间</li>
+<li>阶段内部闪烁节奏</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="为什么主循环只剩-__wfi-反而是更好的设计">为什么主循环只剩 <code dir="auto">__WFI()</code> 反而是更好的设计？</h3><a class="sl-anchor-link" href="#为什么主循环只剩-__wfi-反而是更好的设计"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “为什么主循环只剩 __WFI() 反而是更好的设计？”</span></a></div>
+<p>因为这说明：</p>
+<ul>
+<li>事件驱动路径已经建立完整</li>
+<li>CPU 不需要无意义空转</li>
+<li>主循环不再承担本不属于它的时间管理工作</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="tim6-egr--tim_egr_ug-为什么不能省"><code dir="auto">TIM6->EGR = TIM_EGR_UG;</code> 为什么不能省？</h3><a class="sl-anchor-link" href="#tim6-egr--tim_egr_ug-为什么不能省"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “TIM6->EGR = TIM_EGR_UG; 为什么不能省？”</span></a></div>
+<p>因为它用于强制产生一次 update generation，让刚写进去的预分频和重装值立即装载。<br>
+如果你不写，timer 的配置生效时机可能不如你预期稳定。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="可以直接这样口头讲给老师">可以直接这样口头讲给老师</h3><a class="sl-anchor-link" href="#可以直接这样口头讲给老师"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “可以直接这样口头讲给老师”</span></a></div>
+<p>“A2 里我只是把按键检测从 polling 改成了中断，但整套交通灯时序还是主循环靠 delay 在跑。A3 里真正变化的是等待机制：我用 TIM6 先分频到 1 毫秒节拍，然后在 timer 中断里维护一个状态机。<code dir="auto">ISR_S0</code> 只负责把状态机从空闲绿灯切到第一阶段，后续每 1 毫秒由 <code dir="auto">ISR_Timer</code> 去递减剩余时间、判断是否切状态、以及在行人阶段每 500 毫秒翻转蓝灯。这样主循环本身不再执行业务，只需要 <code dir="auto">__WFI()</code> 等中断，CPU 不会再像 A2 一样一直空转等待。”</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="本任务中最容易看不懂的代码逐句解释">本任务中最容易看不懂的代码逐句解释</h2><a class="sl-anchor-link" href="#本任务中最容易看不懂的代码逐句解释"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “本任务中最容易看不懂的代码逐句解释”</span></a></div>
+<div class="sl-heading-wrapper level-h3"><h3 id="1-tim6_psc_value--1599u-和-tim6_arr_value--9u-为什么能得到-1-ms">1. <code dir="auto">TIM6_PSC_VALUE = 1599U</code> 和 <code dir="auto">TIM6_ARR_VALUE = 9U</code> 为什么能得到 1 ms</h3><a class="sl-anchor-link" href="#1-tim6_psc_value--1599u-和-tim6_arr_value--9u-为什么能得到-1-ms"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “1. TIM6_PSC_VALUE = 1599U 和 TIM6_ARR_VALUE = 9U 为什么能得到 1 ms”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">#define</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">TIM6_PSC_VALUE</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--1:#AA0982"><span style="--0:#F78C6C">1599</span><span style="--0:#FFEB95">U</span></span></div></div><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">#define</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#82AAFF;--1:#3B61B0">TIM6_ARR_VALUE</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--1:#AA0982"><span style="--0:#F78C6C">9</span><span style="--0:#FFEB95">U</span></span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="#define TIM6_PSC_VALUE 1599U#define TIM6_ARR_VALUE 9U"><div></div></button></div></figure></div>
+<p>先看 prescaler：</p>
+<ul>
+<li><code dir="auto">1599U</code> 代表预分频器寄存器里写 1599</li>
+<li>实际除数是 <code dir="auto">1599 + 1 = 1600</code></li>
+</ul>
+<p>所以：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#d6deeb;--1:#403f53">16 MHz / 1600 = 10 kHz</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="16 MHz / 1600 = 10 kHz"><div></div></button></div></figure></div>
+<p>再看 ARR：</p>
+<ul>
+<li><code dir="auto">9U</code> 表示从 0 数到 9</li>
+<li>总共 10 个 tick</li>
+</ul>
+<p>所以：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="text"><code><div class="ec-line"><div class="code"><span style="--0:#d6deeb;--1:#403f53">10 kHz / 10 = 1 kHz</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="10 kHz / 10 = 1 kHz"><div></div></button></div></figure></div>
+<p><code dir="auto">1 kHz</code> 就是每秒 1000 次，也就是每 1 ms 一次。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="2-traffic_state_enter-为什么一进函数就先写-3-个变量">2. <code dir="auto">Traffic_state_enter()</code> 为什么一进函数就先写 3 个变量</h3><a class="sl-anchor-link" href="#2-traffic_state_enter-为什么一进函数就先写-3-个变量"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “2. Traffic_state_enter() 为什么一进函数就先写 3 个变量”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_traffic_state </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> next_state;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_blue_led_on </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_blue_toggle_ms </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="g_traffic_state = next_state;g_blue_led_on = 0;g_blue_toggle_ms = 0;"><div></div></button></div></figure></div>
+<p>这三句不是重复，而是在做“进入新状态时的统一清场”：</p>
+<ul>
+<li>先记录当前到底进入了哪个状态</li>
+<li>把蓝灯相关辅助状态先清成默认值</li>
+</ul>
+<p>然后再由 <code dir="auto">switch</code> 中具体分支决定：</p>
+<ul>
+<li>哪些值要重新装载</li>
+<li>哪些 LED 要点亮</li>
+</ul>
+<p>这样做的好处是：<br>
+避免某个旧状态遗留的蓝灯信息污染新状态。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="3-行人阶段这-4-句为什么要一起看">3. 行人阶段这 4 句为什么要一起看</h3><a class="sl-anchor-link" href="#3-行人阶段这-4-句为什么要一起看"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “3. 行人阶段这 4 句为什么要一起看”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_blue_led_on </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">1</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_blue_toggle_ms </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> BLUE_TOGGLE_MS;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">LEDs_set</span><span style="--0:#D6DEEB;--1:#403F53">(MASK_LED_RED </span><span style="--0:#7FDBCA;--1:#096E72">|</span><span style="--0:#D6DEEB;--1:#403F53"> MASK_LED_BLUE);</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">g_state_timeout_ms </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> WAIT_PEDESTRIAN_MS;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="g_blue_led_on = 1;g_blue_toggle_ms = BLUE_TOGGLE_MS;LEDs_set(MASK_LED_RED | MASK_LED_BLUE);g_state_timeout_ms = WAIT_PEDESTRIAN_MS;"><div></div></button></div></figure></div>
+<p>这 4 句分别回答 4 个问题：</p>
+<ol>
+<li>蓝灯起始亮还是灭？
+<ul>
+<li>亮，所以 <code dir="auto">g_blue_led_on = 1</code></li>
+</ul>
+</li>
+<li>多久翻转一次？
+<ul>
+<li>500 ms，所以 <code dir="auto">g_blue_toggle_ms = BLUE_TOGGLE_MS</code></li>
+</ul>
+</li>
+<li>当前显示成什么？
+<ul>
+<li>红灯 + 蓝灯</li>
+</ul>
+</li>
+<li>这个阶段总共持续多久？
+<ul>
+<li>15 秒</li>
+</ul>
+</li>
+</ol>
+<p>把它们拆开后就会发现，这段代码其实是在“装载一个阶段的全部运行参数”。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="4-tim6-sr--tim_sr_uif-这句为什么不是写-1">4. <code dir="auto">TIM6->SR &#x26;= ~TIM_SR_UIF;</code> 这句为什么不是写 1</h3><a class="sl-anchor-link" href="#4-tim6-sr--tim_sr_uif-这句为什么不是写-1"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “4. TIM6->SR &#x26;= ~TIM_SR_UIF; 这句为什么不是写 1”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">SR </span><span style="--0:#C792EA;--1:#8844AE">&#x26;=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#7FDBCA;--1:#096E72">~</span><span style="--0:#D6DEEB;--1:#403F53">TIM_SR_UIF;</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="TIM6->SR &#x26;= ~TIM_SR_UIF;"><div></div></button></div></figure></div>
+<p>别把它和 EXTI 的：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">EXTI</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">PR1 </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> (</span><span style="--1:#AA0982"><span style="--0:#F78C6C">1</span><span style="--0:#FFEB95">U</span></span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">&#x3C;&#x3C;</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">);</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="EXTI->PR1 = (1U << 0);"><div></div></button></div></figure></div>
+<p>混为一谈。</p>
+<p>两者虽然都叫“清中断标志”，但寄存器语义不一样：</p>
+<ul>
+<li>EXTI 的 pending bit 是“写 1 清除”</li>
+<li>TIM6 这里当前代码使用的是“把 UIF 那一位清成 0”</li>
+</ul>
+<p>所以这句必须按 TIM 的状态寄存器语义来读，不能机械套用 A2 的经验。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="5-这一整句到底在干嘛">5. 这一整句到底在干嘛</h3><a class="sl-anchor-link" href="#5-这一整句到底在干嘛"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “5. 这一整句到底在干嘛”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">LEDs_set</span><span style="--0:#D6DEEB;--1:#403F53">(MASK_LED_RED </span><span style="--0:#7FDBCA;--1:#096E72">|</span><span style="--0:#D6DEEB;--1:#403F53"> (g_blue_led_on </span><span style="--0:#C792EA;--1:#8844AE">?</span><span style="--0:#D6DEEB;--1:#403F53"> MASK_LED_BLUE </span><span style="--0:#C792EA;--1:#8844AE">:</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--1:#AA0982"><span style="--0:#F78C6C">0</span><span style="--0:#FFEB95">U</span></span><span style="--0:#D6DEEB;--1:#403F53">));</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="LEDs_set(MASK_LED_RED | (g_blue_led_on ? MASK_LED_BLUE : 0U));"><div></div></button></div></figure></div>
+<p>从里往外读：</p>
+<ol>
+<li><code dir="auto">g_blue_led_on ? MASK_LED_BLUE : 0U</code>
+<ul>
+<li>蓝灯应亮 -> 返回蓝灯 mask</li>
+<li>蓝灯应灭 -> 返回 0</li>
+</ul>
+</li>
+<li><code dir="auto">MASK_LED_RED | (...)</code>
+<ul>
+<li>无论如何都带上红灯</li>
+<li>再按条件拼上蓝灯</li>
+</ul>
+</li>
+<li><code dir="auto">LEDs_set(...)</code>
+<ul>
+<li>把这个结果真正写到 LED 显示上</li>
+</ul>
+</li>
+</ol>
+<p>翻译成人话就是：</p>
+<p><strong>“红灯始终保持，蓝灯根据当前翻转状态决定加不加进去。”</strong></p>
+<div class="sl-heading-wrapper level-h2"><h2 id="代码细节补遗代码审查中发现的设计取舍">代码细节补遗（代码审查中发现的设计取舍）</h2><a class="sl-anchor-link" href="#代码细节补遗代码审查中发现的设计取舍"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “代码细节补遗（代码审查中发现的设计取舍）”</span></a></div>
+<p>这几条是 2026-05-04 复核 A3_Timer.c 时新增的观察，不是错误而是设计选择，老师抽查时如果问到可以直接回答。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="1-中断优先级故意把-exti0-设得比-tim6-高">1. 中断优先级故意把 EXTI0 设得比 TIM6 高</h3><a class="sl-anchor-link" href="#1-中断优先级故意把-exti0-设得比-tim6-高"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “1. 中断优先级故意把 EXTI0 设得比 TIM6 高”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">NVIC_SetPriority</span><span style="--0:#D6DEEB;--1:#403F53">(EXTI0_IRQn,    </span><span style="--0:#F78C6C;--1:#AA0982">1</span><span style="--0:#D6DEEB;--1:#403F53">);</span><span style="--0:#919F9F;--1:#5D6376">   // GPIO_init() 末尾</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">NVIC_SetPriority</span><span style="--0:#D6DEEB;--1:#403F53">(TIM6_DAC_IRQn, </span><span style="--0:#F78C6C;--1:#AA0982">2</span><span style="--0:#D6DEEB;--1:#403F53">);</span><span style="--0:#919F9F;--1:#5D6376">   // Timer_init() 中段</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="NVIC_SetPriority(EXTI0_IRQn,    1);   // GPIO_init() 末尾NVIC_SetPriority(TIM6_DAC_IRQn, 2);   // Timer_init() 中段"><div></div></button></div></figure></div>
+<p>ARM Cortex-M 数值越小优先级越高，所以 EXTI0 > TIM6。后果：</p>
+<ul>
+<li>TIM6 不能抢占 EXTI0，所以 <code dir="auto">Traffic_state_enter()</code> 在 ISR_S0 中执行时，对 4 个 volatile 变量的连写是天然原子的，不需要加 <code dir="auto">__disable_irq()</code> 保护。</li>
+<li>反过来如果 EXTI0 在 TIM6 ISR 执行中触发，TIM6 ISR 会被打断；但 ISR_S0 只读一次 <code dir="auto">g_traffic_state</code> 并仅在 IDLE 时切换，不会破坏 timer tick 的递减逻辑。</li>
+</ul>
+<div class="sl-heading-wrapper level-h3"><h3 id="2-isr_s0-天然防抖针对启动事件">2. ISR_S0 天然防抖（针对启动事件）</h3><a class="sl-anchor-link" href="#2-isr_s0-天然防抖针对启动事件"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “2. ISR_S0 天然防抖（针对启动事件）”</span></a></div>
+<p>按钮抖动会在按下瞬间产生多次下降沿，每次都会进入 <code dir="auto">ISR_S0()</code>。但：</p>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#C792EA;--1:#8844AE">if</span><span style="--0:#D6DEEB;--1:#403F53"> (g_traffic_state </span><span style="--0:#C792EA;--1:#8844AE">==</span><span style="--0:#D6DEEB;--1:#403F53"> TRAFFIC_STATE_IDLE_GREEN)</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">{</span></div></div><div class="ec-line"><div class="code"><span class="indent">    </span><span style="--0:#82AAFF;--1:#3B61B0">Traffic_state_enter(TRAFFIC_STATE_WAIT_GREEN)</span><span style="--0:#D6DEEB;--1:#403F53">;</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">}</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">EXTI</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">PR1 </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> (</span><span style="--1:#AA0982"><span style="--0:#F78C6C">1</span><span style="--0:#FFEB95">U</span></span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">&#x3C;&#x3C;</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">);</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="if (g_traffic_state == TRAFFIC_STATE_IDLE_GREEN){    Traffic_state_enter(TRAFFIC_STATE_WAIT_GREEN);}EXTI->PR1 = (1U << 0);"><div></div></button></div></figure></div>
+<p>第一次抖动后 <code dir="auto">g_traffic_state</code> 已经不是 IDLE_GREEN，后续抖动进入 ISR 后什么都不做，只清 pending bit。所以 A3 不需要 A4 的 timer 去抖也能正确启动序列。<strong>这一点是 A3 → A4 过渡的天然铺垫</strong>：A4 才需要正式去抖，因为 A4 引入了「按下次数计数」语义，每一次下降沿都有意义。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="3-tim6-sr-清零方式与-exti-pr1-不同">3. TIM6 SR 清零方式与 EXTI PR1 不同</h3><a class="sl-anchor-link" href="#3-tim6-sr-清零方式与-exti-pr1-不同"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “3. TIM6 SR 清零方式与 EXTI PR1 不同”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">TIM6</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">SR </span><span style="--0:#C792EA;--1:#8844AE">&#x26;=</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#7FDBCA;--1:#096E72">~</span><span style="--0:#D6DEEB;--1:#403F53">TIM_SR_UIF;</span><span style="--0:#919F9F;--1:#5D6376">        // 读-改-写，清 UIF 位</span></div></div><div class="ec-line"><div class="code"><span style="--0:#D6DEEB;--1:#403F53">EXTI</span><span style="--0:#7FDBCA;--1:#096E72">-</span><span style="--0:#C792EA;--1:#8844AE">></span><span style="--0:#D6DEEB;--1:#403F53">PR1 </span><span style="--0:#C792EA;--1:#8844AE">=</span><span style="--0:#D6DEEB;--1:#403F53"> (</span><span style="--1:#AA0982"><span style="--0:#F78C6C">1</span><span style="--0:#FFEB95">U</span></span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#C792EA;--1:#8844AE">&#x3C;&#x3C;</span><span style="--0:#D6DEEB;--1:#403F53"> </span><span style="--0:#F78C6C;--1:#AA0982">0</span><span style="--0:#D6DEEB;--1:#403F53">);</span><span style="--0:#919F9F;--1:#5D6376">          // 写 1 清 pending（rc_w1）</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="TIM6->SR &#x26;= ~TIM_SR_UIF;        // 读-改-写，清 UIF 位EXTI->PR1 = (1U << 0);          // 写 1 清 pending（rc_w1）"><div></div></button></div></figure></div>
+<p>两个寄存器的清除语义在 STM32 参考手册里就不一样：</p>
+<ul>
+<li>TIM SR 是「写 0 清除」（rc_w0），所以读-改-写把 UIF 那一位写 0 是对的。</li>
+<li>EXTI PR1 是「写 1 清除」（rc_w1），所以直接 <code dir="auto">= (1&#x3C;&#x3C;0)</code> 是对的。</li>
+</ul>
+<p><strong>绝对不能交叉混用</strong>，否则要么清不掉、要么把别的位也意外清掉。这是 A3 老师抽查时很爱问的细节。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="4-行人阶段的双时间节拍如何不互相冲突">4. 行人阶段的「双时间」节拍如何不互相冲突</h3><a class="sl-anchor-link" href="#4-行人阶段的双时间节拍如何不互相冲突"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “4. 行人阶段的「双时间」节拍如何不互相冲突”</span></a></div>
+<p><code dir="auto">Traffic_timer_tick()</code> 在 <code dir="auto">TRAFFIC_STATE_PEDESTRIAN</code> 分支里的执行顺序是：</p>
+<ol>
+<li>先递减 <code dir="auto">g_state_timeout_ms</code></li>
+<li>判断 <code dir="auto">g_state_timeout_ms == 0</code> → 直接 <code dir="auto">Traffic_advance()</code> 跳出，不再翻转蓝灯</li>
+<li>否则递减 <code dir="auto">g_blue_toggle_ms</code></li>
+<li>判断 <code dir="auto">g_blue_toggle_ms == 0</code> → 翻转 <code dir="auto">g_blue_led_on</code> 并重装</li>
+</ol>
+<p>这个顺序保证：阶段结束的那一 ms 不会再多翻一次蓝灯，也不会让蓝灯停在中间状态——后续的 <code dir="auto">WAIT_RED_AFTER_BLUE</code> 会立刻把 LED mask 重写为只有红灯。</p>
+<div class="sl-heading-wrapper level-h3"><h3 id="5-启动顺序为什么-traffic_state_enteridle_green-要放在-__enable_irq-之前">5. 启动顺序：为什么 <code dir="auto">Traffic_state_enter(IDLE_GREEN)</code> 要放在 <code dir="auto">__enable_irq()</code> 之前</h3><a class="sl-anchor-link" href="#5-启动顺序为什么-traffic_state_enteridle_green-要放在-__enable_irq-之前"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “5. 启动顺序：为什么 Traffic_state_enter(IDLE_GREEN) 要放在 __enable_irq() 之前”</span></a></div>
+<div class="expressive-code"><figure class="frame not-content"><figcaption class="header"></figcaption><pre data-language="c"><code><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">__disable_irq</span><span style="--0:#D6DEEB;--1:#403F53">();</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">GPIO_init</span><span style="--0:#D6DEEB;--1:#403F53">();</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">Timer_init</span><span style="--0:#D6DEEB;--1:#403F53">();</span><span style="--0:#919F9F;--1:#5D6376">                                      // TIM6 已经在跑（CR1.CEN=1）</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">Traffic_state_enter</span><span style="--0:#D6DEEB;--1:#403F53">(TRAFFIC_STATE_IDLE_GREEN);</span><span style="--0:#919F9F;--1:#5D6376">     // 装载初始 LED 与超时=0</span></div></div><div class="ec-line"><div class="code"><span style="--0:#82AAFF;--1:#3B61B0">__enable_irq</span><span style="--0:#D6DEEB;--1:#403F53">();</span></div></div></code></pre><div class="copy"><div aria-live="polite"></div><button title="Copy to clipboard" data-copied="Copied!" data-code="__disable_irq();GPIO_init();Timer_init();                                      // TIM6 已经在跑（CR1.CEN=1）Traffic_state_enter(TRAFFIC_STATE_IDLE_GREEN);     // 装载初始 LED 与超时=0__enable_irq();"><div></div></button></div></figure></div>
+<p><code dir="auto">Timer_init()</code> 末尾 <code dir="auto">CR1 |= TIM_CR1_CEN</code> 已经让 TIM6 开始计数，但全局中断还被 <code dir="auto">__disable_irq()</code> 屏蔽，所以 UIF 即使置位也不会进入 <code dir="auto">ISR_Timer()</code>。等到 <code dir="auto">__enable_irq()</code> 后，TIM6 ISR 第一次被允许执行时看到的状态已经是 <code dir="auto">IDLE_GREEN</code>（<code dir="auto">Traffic_timer_tick()</code> 直接 <code dir="auto">return</code>），因此不会出现「初始化中途被 timer 中断打断、状态机半装载」的竞争。</p>
+<div class="sl-heading-wrapper level-h2"><h2 id="相关链接">相关链接</h2><a class="sl-anchor-link" href="#相关链接"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only" data-pagefind-ignore="">Section titled “相关链接”</span></a></div>
+<ul>
+<li><a href="/knowledge-site/projects/mct/mct-praktikum-lernindex/">MCT Praktikum 学习索引</a></li>
+<li><a href="/knowledge-site/projects/mct/mct-c-stm32-syntax/">MCT C/STM32 语法总表</a></li>
+<li><a href="/knowledge-site/projects/mct/mct-praktikum-a2-interrupts/">A2 Interrupts 讲解</a></li>
+<li><a href="/knowledge-site/projects/mct/mct-praktikum-a1-gpio-polling/">A1 GPIO 与 Polling 讲解</a></li>
+<li><a href="/knowledge-site/projects/mct/mct-praktikum-a3-timer-lowpower/">A3 Timer 低功耗变体讲解</a>（教授指出每 ms 唤醒不省电，本变体只在阶段切换/蓝灯翻转时唤醒 CPU）</li>
+<li><a href="/knowledge-site/projects/mct/note_generation_protocol/">MCT 笔记生成协议</a></li>
+<li><a href="/knowledge-site/notes/concepts/systick-und-timer/">SysTick 与定时器</a></li>
+</ul> </div> <footer class="sl-flex astro-3yyafb3n"> <div class="meta sl-flex astro-3yyafb3n"> <a href="https://github.com/zhuosama/obsidian-wiki/edit/main/site/src/content/docs/projects/MCT/mct-praktikum-a3-timer.md" class="sl-flex print:hidden astro-eez2twj6"><svg aria-hidden="true" class="astro-eez2twj6 astro-c6vsoqas" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="--sl-icon-size: 1.2em;"><path d="M22 7.24a1 1 0 0 0-.29-.71l-4.24-4.24a1 1 0 0 0-1.1-.22 1 1 0 0 0-.32.22l-2.83 2.83L2.29 16.05a1 1 0 0 0-.29.71V21a1 1 0 0 0 1 1h4.24a1 1 0 0 0 .76-.29l10.87-10.93L21.71 8c.1-.1.17-.2.22-.33a1 1 0 0 0 0-.24v-.14l.07-.05ZM6.83 20H4v-2.83l9.93-9.93 2.83 2.83L6.83 20ZM18.17 8.66l-2.83-2.83 1.42-1.41 2.82 2.82-1.41 1.42Z"/></svg>编辑此页</a> <p>最近更新： <time datetime="2026-05-06T00:00:00.000Z">2026年5月6日</time></p> </div> <div class="pagination-links print:hidden astro-u2l5gyhi" dir="ltr">   </div>  </footer> </div> </div>  </main> </div> </div> </div> </div> </body></html>
