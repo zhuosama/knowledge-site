@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>系统实验室更新</title>
+    <link>https://zhuosama.github.io/knowledge-site/</link>
+    <description>系统实验室最近发布的公开里程碑。</description>
+    <language>zh-CN</language>
+    <item>
+      <title>站点发布边界脱敏 + HTML PII 闸门</title>
+      <link>https://zhuosama.github.io/knowledge-site/</link>
+      <guid>https://zhuosama.github.io/knowledge-site/</guid>
+      <pubDate>Fri, 19 Jun 2026 00:00:00 GMT</pubDate>
+      <description>构建后扫描公开 HTML，阻断绝对路径、凭据形态与私有同步标识泄漏。</description>
+    </item>
+    <item>
+      <title>sync-conflict 清理 + ignore 边界对齐</title>
+      <link>https://zhuosama.github.io/knowledge-site/</link>
+      <guid>https://zhuosama.github.io/knowledge-site/</guid>
+      <pubDate>Fri, 19 Jun 2026 00:00:00 GMT</pubDate>
+      <description>清理同步冲突残留，并把公开导入规则与忽略边界对齐，减少重复和误发布。</description>
+    </item>
+    <item>
+      <title>Hermes Virtual Trader 公开案例页</title>
+      <link>https://zhuosama.github.io/knowledge-site/systems/hermes-virtual-trader/</link>
+      <guid>https://zhuosama.github.io/knowledge-site/systems/hermes-virtual-trader/</guid>
+      <pubDate>Thu, 18 Jun 2026 00:00:00 GMT</pubDate>
+      <description>发布投资系统的架构、策略迭代和公开快照，用项目作品形式呈现实验结果。</description>
+    </item>
+  </channel>
+</rss>
