@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="工程学习知识库">
+  <rect width="64" height="64" rx="12" fill="#2c2624"/>
+  <path d="M14 42h36v5H14z" fill="#c46341"/>
+  <path d="M17 17h12v12H17zM35 17h12v12H35zM17 35h12v7H17zM35 35h12v7H35z" fill="#faf6ed"/>
+  <path d="M29 23h6M23 29v6M41 29v6M29 39h6" stroke="#b88a4a" stroke-width="3" stroke-linecap="round"/>
+</svg>
